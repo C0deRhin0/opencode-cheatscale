@@ -46,7 +46,7 @@
         "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
         "OBSIDIAN_HOST": "127.0.0.1",
         "OBSIDIAN_PORT": "27124",
-        "OBSIDIAN_VAULT_PATH": "/Users/C0deRhin0/Documents/Dev/try"
+        "OBSIDIAN_VAULT_PATH": "/your/path/here"
       }
     }
   }
