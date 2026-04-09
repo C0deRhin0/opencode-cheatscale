@@ -26,7 +26,7 @@ This environment is structured into three distinct layers to ensure maximum port
 To prevent situational amnesia and directory navigation errors, all agents MUST follow this sequence for **every conversation and sub-task**:
 1.  **Universal Grounding**: Confirm you are in the workspace root (`ls -F`).
 2.  **Git Scoping**: Verify you are NOT running Git commands in the workspace root. All Git operations MUST change directory to `codebase/` first.
-3.  **Intelligence Sync**: Read `codebase/.opencode/instructions/INSTRUCTIONS.md` and the Constitution files (`plan/.opencode/AGENTS.md` and `plan/.opencode/RULES.md`) to load global behaviors.
+3.  **Intelligence Sync**: Read `codebase/.opencode/instructions/INSTRUCTIONS.md` and the Constitution files (`codebase/.opencode/AGENTS.md`, `codebase/.opencode/RULES.md`, and `codebase/.opencode/SOUL.md`) to load global behaviors. ALL code sub-agents MUST read these constitution files before taking any implementation action.
 4.  **Context Sync**: Traverse all files in `plan/` (especially `roadmap.md` and `INSTRUCTIONS.md`). If `coding_convention.md` and `idea_research.md` are missing, proceed regardlessly
 5.  **Strategic Verification**: Confirm that the current task aligns with the project's active Phase.
 6.  **Progress Check**: Run `git log origin/main..main --oneline` inside `codebase/` to see the current unpushed "Drip" queue.
