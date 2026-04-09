@@ -45,3 +45,18 @@ To prevent hallucinations in multi-agent workflows, all agents must adhere to th
 - **Verify Before Assuming**: If a file or directory path is provided (e.g., `design/`), you MUST run `ls -F` on the parent directory first to confirm the exact casing and pluralization (e.g., `Design/` or `designs/`).
 - **Case-Insensitive Search**: Always use case-insensitive flags for search tools (e.g., `grep -i`, `ripgrep -i`) by default to prevent missing relevant data due to casing mismatches.
 - **Pluralization Handling**: When resolving paths, account for common variations (e.g., `components` vs `component`, `utils` vs `util`).
+
+### 2. 3-Attempt Self-Healing Protocol
+- If a build fails or a test suite errors out, you are authorized to self-correct.
+- **Retry Cap**: You may attempt an autonomous repair loop up to **3 times**. After the 3rd failed attempt, you must stop and seek user guidance with a detailed report of the failures.
+
+### 3. Search-First Mandate and Tool Reality Rule
+- **Search Before Fetch**: Do NOT guess URLs (e.g., `2026.survey.stackoverflow.co`). Always perform a `browser.search` first to find the correct, live URL.
+- **Tool Reality Rule**: Before using any tool, verify it exists and is available. Never assume a tool's name or capabilities.
+- **URL Validation**: Before fetching a direct URL, ensure it looks credible. If a fetch fails, do NOT abort.
+
+### 4. Fallback Strategy (Robustness over Precision)
+If a primary retrieval method fails:
+1. **Pivot**: Immediately try an alternative search query.
+2. **Synthesize**: Use available static knowledge to bridge gaps, clearly marking them as "Estimated based on historical trends."
+3. **Report Confidence**: Always include a "Confidence Level" (Low/Medium/High) in your research results based on the freshness and source quality of the data.
