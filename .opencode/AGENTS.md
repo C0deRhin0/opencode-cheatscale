@@ -1,21 +1,24 @@
-# Everything Claude Code (ECC) — Agent Instructions
+Everything Claude Code (ECC)  Agent Instructions
 
-This is a **production-ready AI coding plugin** providing 30 specialized agents, 136 skills, 60 commands, and automated hook workflows for software development.
+This is a **production-ready AI coding plugin** providing 20 specialized agents, 25+ commands, and automated hook workflows for software development.
 
 **Version:** 1.9.0
 
 ## Core Principles
 
-1. **Agent-First** — Delegate to specialized agents for domain tasks
-2. **Test-Driven** — Write tests before implementation, 80%+ coverage required
-3. **Security-First** — Never compromise on security; validate all inputs
-4. **Immutability** — Always create new objects, never mutate existing ones
-5. **Plan Before Execute** — Plan complex features before writing code
+1. **Agent-First**  Delegate to specialized agents for domain tasks
+2. **Test-Driven**  Write tests before implementation, 80%+ coverage required
+3. **Security-First**  Never compromise on security; validate all inputs
+4. **Immutability**  Always create new objects, never mutate existing ones
+5. **Plan Before Execute**  Plan complex features before writing code
+6. **User Ownership** All generated works belong to the USER; avoid AI signature or "Agent" mentions in code/commits
+7. **Scoped Domain Authority** Specialists (Architect/Planner) have direct write authority within their domains; Orchestrator coordinates boundaries.
 
 ## Available Agents
 
 | Agent | Purpose | When to Use |
 |-------|---------|-------------|
+| build | Primary coding agent | Development work |
 | planner | Implementation planning | Complex features, refactoring |
 | architect | System design and scalability | Architectural decisions |
 | tdd-guide | Test-driven development | New features, bug fixes |
@@ -25,38 +28,24 @@ This is a **production-ready AI coding plugin** providing 30 specialized agents,
 | e2e-runner | End-to-end Playwright testing | Critical user flows |
 | refactor-cleaner | Dead code cleanup | Code maintenance |
 | doc-updater | Documentation and codemaps | Updating docs |
-| docs-lookup | Documentation and API reference research | Library/API documentation questions |
-| cpp-reviewer | C++ code review | C++ projects |
-| cpp-build-resolver | C++ build errors | C++ build failures |
-| go-reviewer | Go code review | Go projects |
-| go-build-resolver | Go build errors | Go build failures |
-| kotlin-reviewer | Kotlin code review | Kotlin/Android/KMP projects |
-| kotlin-build-resolver | Kotlin/Gradle build errors | Kotlin build failures |
 | database-reviewer | PostgreSQL/Supabase specialist | Schema design, query optimization |
-| python-reviewer | Python code review | Python projects |
-| java-reviewer | Java and Spring Boot code review | Java/Spring Boot projects |
-| java-build-resolver | Java/Maven/Gradle build errors | Java build failures |
-| chief-of-staff | Communication triage and drafts | Multi-channel email, Slack, LINE, Messenger |
-| loop-operator | Autonomous loop execution | Run loops safely, monitor stalls, intervene |
-| harness-optimizer | Harness config tuning | Reliability, cost, throughput |
-| rust-reviewer | Rust code review | Rust projects |
-| rust-build-resolver | Rust build errors | Rust build failures |
-| pytorch-build-resolver | PyTorch runtime/CUDA/training errors | PyTorch build/training failures |
-| typescript-reviewer | TypeScript/JavaScript code review | TypeScript/JavaScript projects |
+| critic | Adversarial review | Stress test plans and proposals |
+| researcher | Research support | Investigations and synthesis |
+| fact-checker | Verification and accuracy checks | Validate claims and assumptions |
 
 ## Agent Orchestration
 
 Use agents proactively without user prompt:
-- Complex feature requests → **planner**
-- Code just written/modified → **code-reviewer**
-- Bug fix or new feature → **tdd-guide**
-- Architectural decision → **architect**
-- Security-sensitive code → **security-reviewer**
-- Multi-channel communication triage → **chief-of-staff**
-- Autonomous loops / loop monitoring → **loop-operator**
-- Harness config reliability and cost → **harness-optimizer**
+- Complex feature requests  **planner**
+- Code just written/modified  **code-reviewer**
+- Bug fix or new feature  **tdd-guide**
+- Architectural decision  **architect**
+- Security-sensitive code  **security-reviewer**
+- Adversarial review of proposals  **critic**
+- Research or synthesis needs  **researcher**
+- Verification of claims  **fact-checker**
 
-Use parallel execution for independent operations — launch multiple agents simultaneously.
+Use parallel execution for independent operations  launch multiple agents simultaneously.
 
 ## Security Guidelines
 
@@ -72,7 +61,7 @@ Use parallel execution for independent operations — launch multiple agents sim
 
 **Secret management:** NEVER hardcode secrets. Use environment variables or a secret manager. Validate required secrets at startup. Rotate any exposed secrets immediately.
 
-**If security issue found:** STOP → use security-reviewer agent → fix CRITICAL issues → rotate exposed secrets → review codebase for similar issues.
+**If security issue found:** STOP  use security-reviewer agent  fix CRITICAL issues  rotate exposed secrets  review codebase for similar issues.
 
 ## Coding Style
 
@@ -95,34 +84,36 @@ Use parallel execution for independent operations — launch multiple agents sim
 **Minimum coverage: 80%**
 
 Test types (all required):
-1. **Unit tests** — Individual functions, utilities, components
-2. **Integration tests** — API endpoints, database operations
-3. **E2E tests** — Critical user flows
+1. **Unit tests**  Individual functions, utilities, components
+2. **Integration tests**  API endpoints, database operations
+3. **E2E tests**  Critical user flows
 
 **TDD workflow (mandatory):**
-1. Write test first (RED) — test should FAIL
-2. Write minimal implementation (GREEN) — test should PASS
-3. Refactor (IMPROVE) — verify coverage 80%+
+1. Write test first (RED)  test should FAIL
+2. Write minimal implementation (GREEN)  test should PASS
+3. Refactor (IMPROVE)  verify coverage 80%+
 
-Troubleshoot failures: check test isolation → verify mocks → fix implementation (not tests, unless tests are wrong).
+Troubleshoot failures: check test isolation  verify mocks  fix implementation (not tests, unless tests are wrong).
 
 ## Development Workflow
 
-1. **Plan** — Use planner agent, identify dependencies and risks, break into phases
-2. **TDD** — Use tdd-guide agent, write tests first, implement, refactor
-3. **Review** — Use code-reviewer agent immediately, address CRITICAL/HIGH issues
+1. **Plan**  Use planner agent, identify dependencies and risks, break into phases
+2. **TDD**  Use tdd-guide agent, write tests first, implement, refactor
+3. **Review**  Use code-reviewer agent immediately, address CRITICAL/HIGH issues
 4. **Capture knowledge in the right place**
-   - Personal debugging notes, preferences, and temporary context → auto memory
-   - Team/project knowledge (architecture decisions, API changes, runbooks) → the project's existing docs structure
+   - Personal debugging notes, preferences, and temporary context  auto memory
+   - Team/project knowledge (architecture decisions, API changes, runbooks)  the project's existing docs structure
    - If the current task already produces the relevant docs or code comments, do not duplicate the same information elsewhere
    - If there is no obvious project doc location, ask before creating a new top-level file
-5. **Commit** — Conventional commits format, comprehensive PR summaries
+5. **Commit**  Conventional commits format, comprehensive PR summaries
 
 ## Git Workflow
 
-**Commit format:** `<type>: <description>` — Types: feat, fix, refactor, docs, test, chore, perf, ci
+**Commit format:** `<type>: <description>`  Types: feat, fix, refactor, docs, test, chore, perf, ci
 
-**PR workflow:** Analyze full commit history → draft comprehensive summary → include test plan → push with `-u` flag.
+**No Self-Attribution:** NEVER mention the "Agent" or "AI" in commit messages or source code signatures. All work is attributed to the USER.
+
+**PR workflow:** Analyze full commit history  draft comprehensive summary  include test plan  push with `-u` flag.
 
 ## Architecture Patterns
 
@@ -136,19 +127,19 @@ Troubleshoot failures: check test isolation → verify mocks → fix implementat
 
 **Context management:** Avoid last 20% of context window for large refactoring and multi-file features. Lower-sensitivity tasks (single edits, docs, simple fixes) tolerate higher utilization.
 
-**Build troubleshooting:** Use build-error-resolver agent → analyze errors → fix incrementally → verify after each fix.
+**Build troubleshooting:** Use build-error-resolver agent  analyze errors  fix incrementally  verify after each fix.
 
 ## Project Structure
 
 ```
-agents/          — 30 specialized subagents
-skills/          — 136 workflow skills and domain knowledge
-commands/        — 60 slash commands
-hooks/           — Trigger-based automations
-rules/           — Always-follow guidelines (common + per-language)
-scripts/         — Cross-platform Node.js utilities
-mcp-configs/     — 14 MCP server configurations
-tests/           — Test suite
+agents/           16 agent definition files (20 registered in opencode.json including _stick variants)
+skills/           Skill catalog (subset loaded in config)
+commands/         Command catalog (25+ registered in config)
+hooks/            Trigger-based automations
+rules/            Always-follow guidelines (common + per-language)
+scripts/          Cross-platform Node.js utilities
+mcp-configs/      MCP server configurations
+tests/            Test suite
 ```
 
 ## Success Metrics
