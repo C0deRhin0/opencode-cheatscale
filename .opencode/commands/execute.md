@@ -21,14 +21,25 @@ Synchronize context before any work:
 
 ## Core Protocols
 
-- **Code Sovereignty**: You do NOT write implementation code directly; you delegate to Sub-Supervisors (`@architect`, `@planner`, etc.) securely via the `task` tool. Their workers perform file modifications and read-only reviews.
-- **Workspace Scoping**: All application source code, assets, and configurations MUST be written to the `codebase/` directory. You are STRICTLY FORBIDDEN from creating implementation files in the root or `plans/` folders.
-- **Git Scoping**: All `git` operations (add, commit, push, stage, etc.) MUST be executed within the `codebase/` directory.
-- **Stop-Loss**: Do not advance to the next phase until the current phase output is validated.
-- **Phase Isolation**: You MUST terminate your response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'. Never zero-shot multiple phases in one turn.
-- **Immutability**: Always create new objects; never mutate existing state
-- **Domain Authority**: `architect` is the backend authority; `planner` (frontend lens) is the UI/UX authority
-- **Parallelism**: Follow the **Parallel Dispatch Protocol** in `RULES.md` for all concurrent audit tasks.
+- **Code Sovereignty**: You do NOT write implementation code directly; you delegate to Sub-Supervisors (`@architect`, `@frontend-engineer`, etc.) securely via the `task` tool. Their workers perform file modifications and read-only reviews.
+- **Workspace Scoping**: All application code, assets, and configs MUST be written to `codebase/`.
+- **Git Scoping**: All git operations MUST be within `codebase/`.
+- **Stop-Loss**: Do not advance to next phase until current phase output is validated.
+- **Phase Isolation**: You MUST terminate response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'.
+- **Immutability**: Always create new objects; never mutate existing state.
+- **Domain Authority**: Domain specialists own their scopes; boundary changes go through architect.
+- **Parallelism**: Follow **Parallel Dispatch Protocol** in `RULES.md`.
+- **Complexity Gating**: ALWAYS classify task BEFORE spawning agents:
+  - **Simple** (1 domain, clear requirements): Only spawn 1 writer agent + 1 relevant reviewer
+  - **Medium** (2 domains): Spawn relevant writers + Wave 3 reviewers
+  - **Complex** (3+ domains, ambiguous): Spawn full wave roster minus irrelevant
+
+**Pre-Dispatch Protocol** (BEFORE any agent spawns):
+1. Classify task complexity: Simple / Medium / Complex
+2. Determine affected domains from Router Decision Matrix
+3. Assign file scopes based on actual project structure (Phase 0: Scan)
+4. Only spawn agents needed for that complexity level
+5. NEVER spawn all agents - skip irrelevant ones
 
 ---
 
@@ -36,19 +47,26 @@ Synchronize context before any work:
 
 | Agent | Specialty | Use For |
 |-------|-----------|---------|
-| planner | Implementation planning | Complex feature design, frontend |
-| architect | System design | Architectural decisions, backend |
+| planner | Task decomposition | Ambiguous tasks, complex multi-domain |
+| architect | Backend systems | API, database, infrastructure |
+| frontend-engineer | UI implementation | Components, pages, layouts |
+| database-engineer | Schema/migrations | Database design, SQL |
+| devops-engineer | CI/CD, Docker | Pipelines, deployment |
+| integration-engineer | External APIs | Third-party integrations |
+| ml-engineer | ML/AI | Model integration |
 | code-reviewer | Code quality | Review changes |
-| security-reviewer | Security analysis | Vulnerability detection |
+| security-reviewer | Security | Vulnerability detection |
+| performance-reviewer | Performance | Bottlenecks, latency |
+| accessibility-reviewer | Accessibility | WCAG compliance |
+| qa-engineer | Test coverage | Edge cases, regression |
 | tdd-guide | Test-driven dev | Feature implementation |
 | build-error-resolver | Build fixes | TypeScript/build errors |
 | e2e-runner | E2E testing | User flow testing |
 | doc-updater | Documentation | Updating docs |
 | refactor-cleaner | Code cleanup | Dead code removal |
-| database-reviewer | Database | Query optimization |
 | critic | Adversarial review | Stress test proposals |
-| researcher | Research support | Investigations and synthesis |
-| fact-checker | Verification | Validate claims and assumptions |
+| researcher | Research | Investigations |
+| fact-checker | Verification | Validate claims |
 
 ---
 
@@ -59,13 +77,14 @@ Root Supervisor [Orchestrator]
     │
     ├── [Router] → selects relevant sub-supervisors
     │
-    ├── Sub-Supervisor A (backend: architect)   ← PARALLEL
-    │       ├── security-reviewer (parallel)
-    │       └── database-reviewer (parallel)
+    ├── Sub-Supervisor A (backend)   ← PARALLEL
+    │       ├── Architect (parallel)
+    │       ├── Database Engineer (parallel)
+    │       └── Integration Engineer (parallel)
     │
-    ├── Sub-Supervisor B (frontend: planner)    ← PARALLEL
-    │       ├── code-reviewer (parallel)
-    │       └── e2e-runner (parallel)
+    ├── Sub-Supervisor B (frontend)  ← PARALLEL
+    │       ├── Frontend Engineer (parallel)
+    │       └── (code-reviewer via Wave 3)
     │
     └── [Reducer] → synthesizes all outputs
             │
@@ -101,9 +120,10 @@ execute concurrently. Never wait for one branch before spawning the next.
 
 | Task Type | Detection | Primary Agent |
 |-----------|-----------|---------------|
-| Frontend | Pages, components, UI, styles, layout | `planner` |
+| Frontend | Pages, components, UI, styles, layout | `frontend-engineer` |
 | Backend | API, database, logic, algorithms | `architect` |
 | Full-stack | Both frontend and backend | Both, IN PARALLEL |
+| Ambiguous | Vague requirements, complex | `planner` (decompose first) |
 
 ### Phase 1: Context Retrieval
 
@@ -119,12 +139,14 @@ Based on the plan's Key Files table:
 
  `[Mode: Implement]`
 
-**MANDATORY PARALLELISM**: Execute ALL sub-supervisor branches CONCURRENTLY. Never execute sequentially.
-- **Full-Stack Tasks**: Invoke BOTH `@architect` AND `@planner` in parallel via single turn task array.
+**MANDATORY PARALLELISM**: Execute ALL domain writers CONCURRENTLY. Never execute sequentially.
+- **Full-Stack Tasks**: Invoke `@architect` (backend) + `@frontend-engineer` (frontend) in parallel.
 - **Backend-Only Tasks**: Invoke `@architect` alone.
-- **Frontend-Only Tasks**: Invoke `@planner` alone.
+- **Frontend-Only Tasks**: Invoke `@frontend-engineer` alone.
 
-**Instruction**: Use the `task` tool to spawn ALL relevant Sub-Supervisors in PARALLEL. Pass this prompt to each:
+**NOTE**: Only invoke `@planner` for ambiguous/complex tasks that need decomposition BEFORE implementation. For straightforward implementation, skip Planner.
+
+**Instruction**: Use the `task` tool to spawn ALL relevant domain specialists in PARALLEL. Pass this prompt to each:
 "1. **Execute and Write**: Use your own `write`/`edit` tools to implement this task: [Task Name]
 2. **Implementation Root**: All files modified MUST reside inside `codebase/` and within your designated domain.
 3. Follow the plan strictly — do not deviate.
@@ -140,11 +162,11 @@ Based on the plan's Key Files table:
 After implementation is complete, run a security/quality audit.
 **MANDATORY PARALLELISM**: Spawn ALL audit branches in a SINGLE turn task array. Never sequential.
 
-**Instruction**: Use the `task` tool to invoke BOTH `@architect` AND `@planner` in parallel. Pass this prompt:
+**Instruction**: Use the `task` tool to invoke BOTH `@architect` AND `@frontend-engineer` in parallel. Pass this prompt:
 
 "To BOTH sub-supervisors: After implementation is complete, run concurrent audits.
 - `@architect` branch: Spawn `@security-reviewer` to audit all modified backend files. Focus: vulnerabilities, API compliance, DB ops. Return the prioritized issue list and apply fixes directly.
-- `@planner` branch: Spawn `@code-reviewer` to audit all modified frontend files. Focus: accessibility, re-renders, design patterns. Return the prioritized issue list and apply fixes directly.
+- `@frontend-engineer` branch: Spawn `@code-reviewer` to audit all modified frontend files. Focus: accessibility, re-renders, design patterns. Return the prioritized issue list and apply fixes directly.
 
 **CRITICAL**: Run ALL audits in parallel. Spawn ALL task calls before waiting."
 
@@ -191,14 +213,15 @@ After implementation is complete, run a security/quality audit.
 ## Key Rules
 
 1. **PARALLELISM FIRST**: ALWAYS execute branches at same level in parallel. Never sequential.
-2. Plan before execute — create or locate full execution plan first
-3. Never modify files outside the plan's scope without user approval
-4. All reviewer agents have read-only access — only the orchestrator writes
-5. `architect` recommendation drives backend decisions; `planner` drives frontend decisions
-6. Mandatory dual-perspective audit before declaring completion
-7. Fix CRITICAL issues before delivery; document MEDIUM/LOW for follow-up
-8. All branches above execute CONCURRENTLY - wait for ALL before advancing
-9. Documentation must be current before delivery is declared
+2. **COMPLEXITY GATING**: Classify task first (Simple/Medium/Complex) - only spawn relevant agents
+3. Plan before execute — create or locate full execution plan first
+4. Never modify files outside the plan's scope without user approval
+5. All reviewer agents have read-only access — only domain writers implement
+6. Domain Authority: `architect` (backend), `frontend-engineer` (frontend), `planner` (decomposition only)
+7. Mandatory dual-perspective audit before declaring completion
+8. Fix CRITICAL issues before delivery; document MEDIUM/LOW for follow-up
+9. All branches above execute CONCURRENTLY - wait for ALL before advancing
+10. Documentation must be current before delivery is declared
 
 ---
 

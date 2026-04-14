@@ -9,17 +9,28 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 
 ---
 
-- **Workspace Scoping**: All application source code, assets, and configurations MUST be written to the `codebase/` directory. You are STRICTLY FORBIDDEN from creating implementation files in the root or `plans/` folders.
-- **Git Scoping**: All `git` operations (add, commit, push, stage, etc.) MUST be executed within the `codebase/` directory.
-- **Stop-Loss**: Do not proceed to the next phase until the current phase output is validated.
-- **Phase Isolation**: You MUST terminate your response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'. Never zero-shot multiple phases in one turn.
-- **Code Sovereignty**: You do NOT write implementation code directly; you delegate to Sub-Supervisors (`@architect`, `@planner`) securely via the `task` tool. Their workers perform file modifications and read-only reviews.
-- **Immutability**: Always create new objects; never mutate existing state
-- **Domain Authority**: `architect` is the backend authority; `planner` (frontend lens) is the UI/UX authority
-- **Anti-Batching**: 1 Task = 1 Implementation = 1 Commit. Combining multiple tasks into a single commit is strictly forbidden, regardless of size.
-- **No Auto-Pushing**: You must STOP and await human confirmation after delivery. You are strictly forbidden from automatically executing the `/push` command yourself.
-- **Multi-Roadmap Support**: The instruction path is determined by the `$SCOPE` argument.
-- **Parallelism**: Follow the **Parallel Dispatch Protocol** in `RULES.md` for all concurrent audit tasks.
+- **Workspace Scoping**: All application code, assets, configs MUST be written to `codebase/`.
+- **Git Scoping**: All git operations MUST be within `codebase/`.
+- **Stop-Loss**: Do not proceed to next phase until current phase output is validated.
+- **Phase Isolation**: You MUST terminate response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'.
+- **Code Sovereignty**: You do NOT write implementation code directly; you delegate to domain specialists via `task` tool.
+- **Immutability**: Always create new objects; never mutate existing state.
+- **Domain Authority**: Domain specialists own their scopes; boundary changes go through architect.
+- **Anti-Batching**: 1 Task = 1 Implementation = 1 Commit. No combining tasks.
+- **No Auto-Pushing**: You must STOP and await human confirmation after delivery.
+- **Multi-Roadmap Support**: The instruction path is determined by `$SCOPE` argument.
+- **Parallelism**: Follow **Parallel Dispatch Protocol** in `RULES.md`.
+- **Complexity Gating**: ALWAYS classify task BEFORE spawning agents:
+  - **Simple** (1 domain, clear requirements): Only spawn 1 writer agent + 1 relevant reviewer
+  - **Medium** (2 domains): Spawn relevant writers + Wave 3 reviewers
+  - **Complex** (3+ domains, ambiguous): Spawn full wave roster minus irrelevant
+
+**Pre-Dispatch Protocol** (BEFORE any agent spawns):
+1. Classify task complexity: Simple / Medium / Complex
+2. Determine affected domains from Router Decision Matrix
+3. Assign file scopes based on actual project structure (Phase 0: Scan)
+4. Only spawn agents needed for that complexity level
+5. NEVER spawn all agents - skip irrelevant ones
 
 ## GLOBAL OUTPUT RULE: NO EMOJIS
 You are STRICTLY FORBIDDEN from using emojis in any generated output.
@@ -30,19 +41,26 @@ You are STRICTLY FORBIDDEN from using emojis in any generated output.
 
 | Agent | Specialty | Use For |
 |-------|-----------|---------|
-| planner | Implementation planning | Complex feature design, frontend |
-| architect | System design | Architectural decisions, backend |
+| planner | Task decomposition | Ambiguous tasks, complex multi-domain |
+| architect | Backend systems | API, database, infrastructure |
+| frontend-engineer | UI implementation | Components, pages, layouts |
+| database-engineer | Schema/migrations | Database design, SQL |
+| devops-engineer | CI/CD, Docker | Pipelines, deployment |
+| integration-engineer | External APIs | Third-party integrations |
+| ml-engineer | ML/AI | Model integration |
 | code-reviewer | Code quality | Review changes |
-| security-reviewer | Security analysis | Vulnerability detection |
+| security-reviewer | Security | Vulnerability detection |
+| performance-reviewer | Performance | Bottlenecks, latency |
+| accessibility-reviewer | Accessibility | WCAG compliance |
+| qa-engineer | Test coverage | Edge cases, regression |
 | tdd-guide | Test-driven dev | Feature implementation |
-| build-error-resolver | Build fixes | Build/type errors |
+| build-error-resolver | Build fixes | TypeScript/build errors |
 | e2e-runner | E2E testing | User flow testing |
 | doc-updater | Documentation | Updating docs |
 | refactor-cleaner | Code cleanup | Dead code removal |
-| database-reviewer | Database | Query optimization |
 | critic | Adversarial review | Stress test proposals |
-| researcher | Research support | Investigations and synthesis |
-| fact-checker | Verification | Validate claims and assumptions |
+| researcher | Research | Investigations |
+| fact-checker | Verification | Validate claims |
 
 ---
 
@@ -53,13 +71,14 @@ Root Supervisor [Orchestrator]
     │
     ├── [Router] → selects relevant sub-supervisors
     │
-    ├── Sub-Supervisor A (backend: architect)   ← PARALLEL
-    │       ├── security-reviewer (parallel)
-    │       └── database-reviewer (parallel)
+    ├── Sub-Supervisor A (backend)   ← PARALLEL
+    │       ├── Architect (parallel)
+    │       ├── Database Engineer (parallel)
+    │       └── Integration Engineer (parallel)
     │
-    ├── Sub-Supervisor B (frontend: planner)    ← PARALLEL
-    │       ├── code-reviewer (parallel)
-    │       └── e2e-runner (parallel)
+    ├── Sub-Supervisor B (frontend)  ← PARALLEL
+    │       ├── Frontend Engineer (parallel)
+    │       └── (code-reviewer via Wave 3)
     │
     └── [Reducer] → synthesizes all outputs
             │
@@ -101,9 +120,10 @@ execute concurrently. Never wait for one branch before spawning the next.
 
 | Task Type | Detection | Primary Agent |
 |-----------|-----------|---------------|
-| Frontend | Pages, components, UI, styles, layout | `planner` |
+| Frontend | Pages, components, UI, styles, layout | `frontend-engineer` |
 | Backend | API, database, logic, algorithms | `architect` |
 | Full-stack | Both frontend and backend | Both, IN PARALLEL |
+| Ambiguous | Vague requirements, complex | `planner` (decompose first) |
 
 ### Phase 2: Context Retrieval
 
@@ -132,7 +152,7 @@ For **each** atomic task identified in Phase 1, execute this loop:
 5. Spawn your designated code-reviewer to perform an atomic quality gate check on the files modified.
 6. Return PASS or the handled issues summary."
 
-**CRITICAL**: For full-stack tasks, spawn BOTH @architect AND @planner in a single turn. Wait for ALL to complete before checkpoint.
+**CRITICAL**: For full-stack tasks, spawn BOTH @architect AND @frontend-engineer in a single turn. Wait for ALL to complete before checkpoint.
 
 #### Step B & C — Handled by Sub-Supervisor
 (The invoked Sub-Supervisor natively handles Verification and Quality Gates. If they report FAILURE, command them to fix before proceeding.)
@@ -167,11 +187,11 @@ If you accidentally implement multiple tasks without checkpointing:
 After all tasks in the target Phase/Day are implemented and committed, run a final security/quality audit.
 **MANDATORY PARALLELISM**: Spawn ALL audit branches in a SINGLE turn task array. Never sequential.
 
-**Instruction**: Use the `task` tool to invoke BOTH `@architect` AND `@planner` in parallel. Pass this prompt:
+**Instruction**: Use the `task` tool to invoke BOTH `@architect` AND `@frontend-engineer` in parallel. Pass this prompt:
 
 "To BOTH sub-supervisors: After all atomic tasks complete, run concurrent audits across the Phase/Day.
 - `@architect` branch: Spawn `@security-reviewer` to audit all modified backend files. Focus: vulnerabilities, API compliance, DB ops. Return prioritized issue list and apply fixes directly.
-- `@planner` branch: Spawn `@code-reviewer` to audit all modified frontend files. Focus: accessibility, re-renders, design patterns. Return prioritized issue list and apply fixes directly.
+- `@frontend-engineer` branch: Spawn `@code-reviewer` to audit all modified frontend files. Focus: accessibility, re-renders, design patterns. Return prioritized issue list and apply fixes directly.
 
 **CRITICAL**: Run ALL audits in parallel. Spawn ALL task calls before waiting. Each fix uses Atomic Checkpoint (Step D)."
 
@@ -229,15 +249,16 @@ After all tasks in the target Phase/Day are implemented and committed, run a fin
 ## Key Rules
 
 1. **PARALLELISM FIRST**: ALWAYS execute branches at same level in parallel. Never sequential.
-2. 1 Task = 1 Commit. No exceptions. No batching.
-3. Never modify files outside the plan's scope without user approval.
-4. All reviewer agents have read-only access — only the orchestrator writes.
-5. `architect` drives backend decisions; `planner` drives frontend decisions.
-6. Mandatory dual-perspective audit after all tasks in the Phase/Day are complete.
-7. Fix CRITICAL issues before delivery; document MEDIUM/LOW for follow-up.
-8. All branches above execute CONCURRENTLY - wait for ALL before advancing.
-9. Documentation must be current before delivery is declared.
-10. The `[$SCOPE:PnDm]` suffix is reserved exclusively for `/routine` commits.
+2. **COMPLEXITY GATING**: Classify task first (Simple/Medium/Complex) - only spawn relevant agents
+3. 1 Task = 1 Commit. No exceptions. No batching.
+4. Never modify files outside the plan's scope without user approval.
+5. All reviewer agents have read-only access — only domain writers implement
+6. Domain Authority: `architect` (backend), `frontend-engineer` (frontend), `planner` (decomposition only)
+7. Mandatory dual-perspective audit after all tasks in the Phase/Day are complete.
+8. Fix CRITICAL issues before delivery; document MEDIUM/LOW for follow-up.
+9. All branches above execute CONCURRENTLY - wait for ALL before advancing
+10. Documentation must be current before delivery is declared.
+11. The `[$SCOPE:PnDm]` suffix is reserved exclusively for `/routine` commits.
 
 ---
 
