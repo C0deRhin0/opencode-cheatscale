@@ -26,6 +26,43 @@ When an instruction or logic calls for concurrent execution (e.g., dual-perspect
 
 **CRITICAL**: If tasks can run in parallel, they MUST run in parallel. Sequential execution is ONLY permitted when tasks have true dependencies (output of task A is input of task B).
 
+### Wave-Based Dispatch Protocol (MANDATORY)
+All orchestration MUST follow the wave-based execution pattern:
+
+| Wave | Name | Agents | Parallel? | When |
+|------|------|--------|-----------|------|
+| 1 | Knowledge | Researcher, Fact Checker | Yes | Only if unknowns exist |
+| 2 | Domain Writers | Architect, Frontend Engineer, DB Engineer, DevOps Engineer, Integration Engineer, ML Engineer | Yes | Always |
+| 3 | Quality & Safety | Code Reviewer, Security Reviewer, Performance Reviewer, Accessibility Reviewer, QA Engineer | Yes | After Wave 2 |
+| 4 | Execution | TDD Guide, Build Error Resolver, Refactor Cleaner | Yes | After Wave 3 |
+| 5 | Validation | E2E Runner | No | After Wave 4 |
+| 6 | Adversarial Gate | Critic | No | Final validation |
+| 7 | Knowledge Closing | Doc Updater | Yes | Pre-delivery |
+
+**Complexity Gating**:
+- **Simple** (1 domain): Waves 2, 3, 5, 6
+- **Medium** (2 domains): Waves 2, 3, 4, 5, 6
+- **Complex** (3+ domains): All waves
+
+### File Scope & Conflict Mitigation Protocol (MANDATORY)
+Before dispatching Wave 2, the Orchestrator MUST assign explicit file scopes:
+
+| Domain | Default Scope | Boundary Rule |
+|--------|---------------|----------------|
+| Backend (Architect) | `/src/api/**`, `/src/services/**`, `/src/core/**` | Owns shared types |
+| Frontend (Frontend Engineer) | `/src/components/**`, `/src/pages/**`, `/src/hooks/**` | Requests changes to Architect |
+| Database (Database Engineer) | `/prisma/**`, `/db/migrations/**` | Owns schema |
+| Infrastructure (DevOps Engineer) | `/infra/**`, `/.github/workflows/**`, `/docker/**` | CI/CD ownership |
+| Integrations (Integration Engineer) | `/src/integrations/**`, `/src/webhooks/**` | External APIs |
+| ML/AI (ML Engineer) | `/src/ml/**`, `/src/ai/**`, `/src/embeddings/**` | AI code |
+
+**Conflict Prevention Rules**:
+1. **Scope Lock**: Each agent can ONLY write to its assigned scope
+2. **Boundary Ownership**: Shared types/configs owned by Architect; others request changes
+3. **No Overlap**: File scopes must NOT overlap - verified before dispatch
+4. **Queue for Boundary**: Cross-domain changes queued and applied by owner post-wave
+5. **Read-Only Reviewers**: Quality agents (Wave 3) only read; never write
+
 ### Workspace Boundary Protocol
 - **Intelligence Layer**: `.opencode/` (Global behaviors)
 - **Context Layer**: `plans/` (Project-specific missions)
@@ -37,9 +74,14 @@ The Root Supervisor (Orchestrator) is authorized to use the `write` tool for fin
 
 ### Scoped Domain Authority Protocol
 To ensure high-fidelity implementation and prevent the translation bottleneck, write permissions are scoped dynamically per project:
-- **`orchestrator`**: Always authorized for `plans/`, `docs/`, and `codebase/README.md`. 
+- **`orchestrator`**: Always authorized for `plans/`, `docs/`, and `codebase/README.md`.
 - **`architect`**: Generally assigned the **Logic/Engine/Backend Domain** (e.g., `src/core/`, `api/`, `db/`).
-- **`planner`**: Generally assigned the **Interface/Asset/Frontend Domain** (e.g., `src/ui/`, `components/`, `assets/`).
+- **`planner`**: Pure decomposition agent - read-only, NO implementation.
+- **`frontend-engineer`**: Owns frontend/UI implementation.
+- **`database-engineer`**: Owns database/migration implementation.
+- **`devops-engineer`**: Owns CI/CD and infrastructure.
+- **`integration-engineer`**: Owns external integrations.
+- **`ml-engineer`**: Owns ML/AI implementation.
 - **Reviewers/Critics**: STRICTLY READ-ONLY. They provide feedback as text, which the Domain Owner then acts upon. EXCEPTION: `security-reviewer` has write authority to fix CRITICAL vulnerabilities directly.
 - **Rule of Authority**: A specialist is strictly forbidden from writing to a path not assigned to them. If a file spans domains, the Orchestrator must resolve or assign clear owner.
 - **Domain Specialists**: Authority is assigned by the Orchestrator dynamically - no static roadmap.md required.

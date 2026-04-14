@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/plugin.schema.json",
-  "model": "github-copilot/gpt-5.2-codex",
-  "small_model": "github-copilot/grok-code-fast-1",
+  "model": "opencode/minimax-m2.5-free",
+  "small_model": "opencode/minimax-m2.5-free",
   "default_agent": "build",
   "instructions": [
     ".opencode/agents/orchestrator.md",
@@ -28,7 +28,7 @@
     "orchestrator": {
       "description": "Root Supervisor and Entry Point for large project workflows.",
       "mode": "primary",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "opencode/minimax-m2.5-free",
       "prompt": "1. ROOT ANCHORING: Always anchor yourself in the conversation root. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plan/`. {file:agents/orchestrator.md}",
       "tools": {
         "read": true,
@@ -53,25 +53,26 @@
     "build": {
       "description": "Primary coding agent for development work",
       "mode": "primary",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "opencode/minimax-m2.5-free",
       "prompt": "{file:agents/build.md}",
       "tools": {
         "write": true,
         "edit": true,
         "bash": true,
-        "read": true
+        "read": true,
+        "question": true
       }
     },
     "planner": {
-      "description": "Expert planning specialist for complex features and refactoring. Use for implementation planning, architectural changes, or complex refactoring.",
+      "description": "Pure task decomposition specialist. Analyzes complex requirements and breaks them into atomic, executable steps for domain specialists. NEVER writes code.",
       "mode": "subagent",
       "model": "github-copilot/gemini-3.1-pro-preview",
-      "prompt": "1. ROOT ANCHORING: Always anchor yourself in the conversation root. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plan/` (especially `roadmap.md` and `INSTRUCTIONS.md`). You are not permitted to start planning until this context is synchronized. {file:agents/planner.md}",
+      "prompt": "{file:agents/planner.md}",
       "tools": {
         "read": true,
-        "bash": true,
-        "write": true,
-        "edit": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
         "question": true
       }
     },
@@ -206,7 +207,8 @@
         "read": true,
         "bash": false,
         "write": false,
-        "edit": false
+        "edit": false,
+        "question": true
       }
     },
     "fact-checker": {
@@ -218,7 +220,112 @@
         "read": true,
         "bash": false,
         "write": false,
-        "edit": false
+        "edit": false,
+        "question": true
+      }
+    },
+    "frontend-engineer": {
+      "description": "Frontend implementation specialist. Writes UI components, layouts, pages, and ensures design system compliance.",
+      "mode": "subagent",
+      "model": "github-copilot/gemini-3.1-pro-preview",
+      "prompt": "{file:agents/frontend-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "database-engineer": {
+      "description": "Database specialist for schema design, query optimization, migrations, and data modeling.",
+      "mode": "subagent",
+      "model": "github-copilot/gpt-5.2-codex",
+      "prompt": "{file:agents/database-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "devops-engineer": {
+      "description": "DevOps and infrastructure specialist. Manages CI/CD pipelines, Docker containers, and deployment configurations.",
+      "mode": "subagent",
+      "model": "github-copilot/gpt-5.2-codex",
+      "prompt": "{file:agents/devops-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "integration-engineer": {
+      "description": "Third-party integration specialist. Implements external API connections, webhooks, and service connectors.",
+      "mode": "subagent",
+      "model": "github-copilot/gemini-3.1-pro-preview",
+      "prompt": "{file:agents/integration-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "ml-engineer": {
+      "description": "Machine learning engineer for model integration, embeddings, inference pipelines, and AI-powered features.",
+      "mode": "subagent",
+      "model": "github-copilot/gemini-3.1-pro-preview",
+      "prompt": "{file:agents/ml-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "performance-reviewer": {
+      "description": "Performance specialist for identifying bottlenecks, memory issues, latency problems, and optimization opportunities.",
+      "mode": "subagent",
+      "model": "github-copilot/gemini-3.1-pro-preview",
+      "prompt": "{file:agents/performance-reviewer.md}",
+      "tools": {
+        "read": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+        "question": true
+      }
+    },
+    "accessibility-reviewer": {
+      "description": "WCAG compliance specialist for ensuring digital accessibility.",
+      "mode": "subagent",
+      "model": "github-copilot/gemini-3.1-pro-preview",
+      "prompt": "{file:agents/accessibility-reviewer.md}",
+      "tools": {
+        "read": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+        "question": true
+      }
+    },
+    "qa-engineer": {
+      "description": "Quality assurance specialist for test coverage, edge case identification, and regression detection.",
+      "mode": "subagent",
+      "model": "github-copilot/gemini-3.1-pro-preview",
+      "prompt": "{file:agents/qa-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+        "question": true
       }
     }
   },
