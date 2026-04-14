@@ -19,7 +19,7 @@ Generate complete project context files with full-stack analysis. No code execut
 - **Content Sovereignty**: The Orchestrator MUST NOT hallucinate specialist logic. Every file written MUST be based on a previous `task` tool output from a registered subagent.
 - **Stop-Loss**: Do not proceed to the next phase until the current phase output is validated.
 - **Phase Isolation**: You MUST terminate your response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'. Never zero-shot multiple phases in one turn.
-- **Domain Authority**: `architect` is the backend authority; `planner` (frontend lens) is the UI/UX authority
+- **Domain Authority**: `architect` is the backend authority; `frontend-engineer` is the UI/UX authority; `planner` is for decomposition only (NOT frontend implementation)
 
 ## GLOBAL OUTPUT RULE: NO EMOJIS
 You are STRICTLY FORBIDDEN from using emojis in any generated files. All output must be plain professional text. This applies to every section, header, bullet point, and deliverable across all files.
@@ -140,7 +140,7 @@ Focus: Technical feasibility, API design, database impact, data flow, performanc
 Output: At least 2 backend solution options with pros/cons and recommended approach"
 Target: `codebase/`.
 
-**Frontend / UX Analysis** — `@planner`
+**Frontend / UX Analysis** — `@frontend-engineer`
 Use the `task` tool. Pass this prompt:
 "Analyze: $ARGUMENTS
 Context: [paste relevant UI/component file excerpts]
