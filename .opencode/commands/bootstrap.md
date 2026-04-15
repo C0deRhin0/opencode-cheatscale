@@ -1,31 +1,21 @@
 ---
-description: End-to-end project bootstrap — Generate complete project context (roadmap, instructions, conventions, research)
+description: End-to-end project bootstrap using enterprise wave-based orchestration. Generates complete project context with parallel agent execution.
 agent: orchestrator
 ---
 
-# Bootstrap: Project Planning & Roadmapping
+# Bootstrap: Enterprise Project Planning
 
-Generate complete project context files with full-stack analysis. No code execution — this produces the planning artifacts only.
-
-**CRITICAL**: You are the **Secretary/Synthesis Anchor**. While you are authorized to use the `write` tool to save final `.md` files, you are **STRICTLY FORBIDDEN** from generating the domain content (research, architecture, roadmap tasks) yourself. You MUST delegate to subagents for "Payload" generation.
+Generate project context using wave-based orchestration. All artifacts written to `plans/$SCOPE/` - Obsidian vault configured to project root to see all roadmaps.
 
 ---
 
-## Core Protocols
+## Core Principles
 
-- **Multi-Roadmap Support**: All artifacts are written to `plans/$SCOPE/`.
-- **OpenCode Native**: Uses built-in agent subtasks — no external binaries required
-- **Code Sovereignty**: Only the orchestrating supervisor (Orchestrator) writes files to disk; analysis agents are read-only workers.
-- **Content Sovereignty**: The Orchestrator MUST NOT hallucinate specialist logic. Every file written MUST be based on a previous `task` tool output from a registered subagent.
-- **Stop-Loss**: Do not proceed to the next phase until the current phase output is validated.
-- **Phase Isolation**: You MUST terminate your response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'. Never zero-shot multiple phases in one turn.
-- **Domain Authority**: `architect` is the backend authority; `frontend-engineer` is the UI/UX authority; `planner` is for decomposition only (NOT frontend implementation)
-
-## GLOBAL OUTPUT RULE: NO EMOJIS
-You are STRICTLY FORBIDDEN from using emojis in any generated files. All output must be plain professional text. This applies to every section, header, bullet point, and deliverable across all files.
-
-## PROJECT NAMING RULE
-The "Project Name" is defined as the **name of the parent folder** where the `.opencode/` folder resides. Use `pwd` or directory inspection to extract this, and use it in all documentation.
+- **Wave-Based Dispatch**: Execute agents in parallel waves, sequential between waves
+- **Single Source of Truth**: All files written to `plans/$SCOPE/` only
+- **No Code Sovereignty Violation**: Subagents NEVER write to `codebase/` during bootstrap
+- **Orchestrator Synthesis**: Only Orchestrator writes files; subagents provide content
+- **Phase 0 Scan**: Always scan project structure before routing
 
 ---
 
@@ -35,293 +25,199 @@ The "Project Name" is defined as the **name of the parent folder** where the `.o
 
 ---
 
-## Phase 0: Scoping (MANDATORY STOP)
+## Phase 0: Scan & Route (MANDATORY FIRST)
 
- `[Mode: Scoping]`
+`[Mode: Scan]`
 
-1. Identify the **Scope Name**:
-   - Extract the first word from `$ARGUMENTS` if it looks like a feature name (e.g., `billing`, `auth`).
-   - If unsure, use the `question` tool to ask: "What is the scope name for this project/feature?"
-     - Options: ["core (main project)", "billing", "auth", "marketing-site", "other (type your own)"]
-   - Default to `core` if the user confirms it's the main project.
+1. **Project Scan**:
+   - Run: `ls -laF` to confirm project root
+   - Check: `plans/` directory exists
+   - Identify: Project structure (codebase/, src/, etc.)
 
-2. Use the `question` tool to gather user preferences. Present these questions in a single call:
-   - **Primary Goal**: "What is the primary goal for this project?"
-     - Options: ["MVP Speed (fastest path to working prototype)", "Enterprise Scalability (built for growth)"]
-   - **Tech Stack**: "Do you have strict tech stack requirements?"
-     - Options: ["Strict requirements (I know what I want)", "AI recommendation allowed (surprise me)"]
-   - **Feature Priority**: "How detailed should the specification be?"
-     - Options: ["Core only (minimal viable)", "Full specification (comprehensive)"]
+2. **Complexity Classification**:
+   - Analyze `$ARGUMENTS`
+   - Classify: **Simple** | **Medium** | **Complex**
 
-3. **MANDATORY STOP**: You MUST invoke the `question` tool NOW and WAIT for user selection before proceeding to Phase 1. DO NOT BEGIN PHASE 1 until you have the user's answers.
+   | Complexity | Criteria | Agents |
+   |------------|----------|--------|
+   | Simple | Single domain, clear requirements | architect, planner |
+   | Medium | 2-3 domains, partial clarity | architect, frontend-engineer |
+   | Complex | 3+ domains, ambiguous requirements | + researcher, + critic |
+
+3. **Scope Name Extraction**:
+   - Extract first word from `$ARGUMENTS` as scope (e.g., `billing`, `auth`)
+   - Default to `core` if main project
+
+4. **User Preferences** (via `question` tool):
+   - Primary Goal: MVP Speed OR Enterprise Scalability
+   - Tech Stack: Strict requirements OR AI recommendation
+   - Feature Priority: Core only OR Full specification
+
+5. **MANDATORY STOP**: Wait for user answers before Wave 1
 
 ---
 
-## Phase 1: Synthesize & Research
+## Wave 1: Knowledge (If Unknowns Exist)
 
 `[Mode: Research]`
 
-**Domain Authority**: Content MUST be retrieved from `@researcher` output. You are forbidden from drafting the project brief yourself.
+**Trigger**: If task has technical unknowns requiring investigation
 
-**Instruction**: Use the `task` tool to invoke `@researcher`. Pass this prompt:
-"1. Analyze `$ARGUMENTS` + user selections from Phase 0
-2. Synthesize: tech stack, architecture, core features
-3. Provide the content for `plans/$SCOPE/idea_research.md`:
+**Parallel Execution** (agents called simultaneously via `task` tool):
+- `@researcher`: Analyze tech stack, architecture options, provide recommendation
+- `@fact-checker`: Verify claims, check version numbers, validate assumptions
+
+**Output**: Synthesized research findings for architect
+
+**Skip Wave 1** if requirements are clear and tech stack is known.
+
+---
+
+## Wave 2: Domain Analysis (Parallel)
+
+`[Mode: Analysis]`
+
+**Parallel Execution** (agents called simultaneously via `task` tool):
+
+### Backend Analysis — `@architect`
+```
+Analyze: $ARGUMENTS + user preferences
+Focus: Technical feasibility, architecture, data flow, performance, security
+Output: Solution options with pros/cons + recommended approach
+Scope: plans/$SCOPE/ domain
+```
+
+### Frontend/UX Analysis — `@frontend-engineer` (if UI involved)
+```
+Analyze: $ARGUMENTS + user preferences
+Focus: UI structure, component design, user experience
+Output: Visual approach options with pros/cons + recommended approach
+Scope: plans/$SCOPE/ domain
+```
+
+**Wait for ALL responses before proceeding to Wave 3**
+
+---
+
+## Wave 3: Quality Review (Parallel)
+
+`[Mode: Quality]`
+
+**Parallel Execution**:
+
+### Adversarial Review — `@critic`
+```
+Review: Phase 1-2 outputs (research + analysis)
+Focus: Feasibility risks, edge cases, hidden assumptions, timeline viability
+Output: Critical issues list with severity ratings
+```
+
+**Wait for response before Synthesis**
+
+---
+
+## Phase: Synthesis & Roadmap Generation
+
+`[Mode: Synthesis]`
+
+**Orchestrator Tasks**:
+
+1. **Read all Wave outputs** from task results
+
+2. **Write `plans/$SCOPE/idea_research.md`**:
    ```markdown
    ## Project Brief: $SCOPE
-
+   
    ### Goal
-   <One sentence: what this project achieves>
-
+   <One sentence project objective>
+   
    ### Task
    <Concrete deliverables>
-
+   
    ### Constraints
    - Tech stack: <stack>
    - Timeline: <phase targets>
    - Non-goals: <out of scope>
    ```
-4. If mission is straightforward, provide `# IDEA RESEARCH: SKIPPED.` instead"
 
-**Synthesis Anchor**: Receive the content from `@researcher` and use your `write` tool to save `plans/$SCOPE/idea_research.md`. Then proceed to Phase 2.
+3. **Write `plans/$SCOPE/coding_convention.md`**:
+   - Tech-stack specific best practices
+   - Naming conventions, file structure
+   - Testing requirements (80%+)
 
----
+4. **Write `plans/$SCOPE/INSTRUCTIONS.md`**:
+   - Workspace boundaries
+   - Key project conventions
+   - 3-Tier Architecture emphasis
 
-## Phase 2: Architectural Guardrails
+5. **Write `plans/$SCOPE/roadmap.md`** with:
 
-`[Mode: Architecture]`
+   **Section A — Write Scopes**:
+   ```markdown
+   ### Write Scopes
+   | Agent | Authorized Directory Scopes | Conceptual Domain |
+   |-------|-----------------------------|-------------------|
+   | orchestrator | `plans/`, `docs/` | Secretary / Border Guard |
+   | architect | <Defined based on project> | Logic / Engine |
+   | frontend-engineer | <Defined based on project> | UI / Presentation |
+   ```
 
-**Domain Authority**: Content MUST be retrieved from `@architect` output. You are forbidden from drafting the conventions or instructions yourself.
+   **Section B — Roadmap**:
+   ```markdown
+   ## Roadmap
+   
+   ### Phase N — [Name] (~N days, M tasks)
+   
+   **Day 1**
+   - [ ] Task 1 (Atomic, 15 min or less)
+   - [ ] Task 2
+   
+   **Day 2**
+   - [ ] Task 1
+   
+   **Deliverable:** What works at phase end
+   ```
 
-**Instruction**: Use the `task` tool to invoke `@architect`. Pass this prompt:
-"1. Read `plans/$SCOPE/idea_research.md`
-2. Based *only* on the defined Tech Stack, extract the structural rules
-3. Write `plans/$SCOPE/coding_convention.md`:
-    - Tech-stack specific best practices
-    - Naming conventions, file structure patterns
-    - Testing requirements (80%+ coverage)
-4. Provide the content for `plans/$SCOPE/INSTRUCTIONS.md`:
-    - Workspace boundaries: ``, `plans/$SCOPE/`, `codebase/`
-    - Key project conventions
-    - 3-Tier Architecture emphasis"
-
-**Synthesis Anchor**: Receive the content from `@architect` and use your `write` tool to save `plans/$SCOPE/coding_convention.md` and `plans/$SCOPE/INSTRUCTIONS.md`. Then proceed to Phase 3.
-
----
-
-## Phase 3: Context Retrieval
-
-`[Mode: Retrieval]`
-
-1. Run `ls -laF` to confirm project root
-2. Read `plans/$SCOPE/roadmap.md` (if exists), `plans/$SCOPE/INSTRUCTIONS.md`, `plans/$SCOPE/coding_convention.md`
-3. Use `grep` and `find` to locate relevant source files:
-   - Backend: API routes, controllers, services, database schema, migration files, type definitions
-   - Frontend: Components, layouts, pages, design system tokens, state management patterns
-4. **Requirement Completeness Score** (0-10):
-   - Goal clarity (0-3), Expected outcome (0-3), Scope boundaries (0-2), Constraints (0-2)
-   - Score >= 7: Continue | Score < 7: Stop, ask clarifying questions
-
----
-
-## Phase 4: Dual-Perspective Analysis
-
-`[Mode: Analysis]`
-
-**Domain Authority**: Analysis MUST be performed by specialists. You are forbidden from generating backend/frontend analysis yourself.
-
-**Instruction**: Use the `task` tool to spawn the following sub-supervisors concurrently. **Follow the Parallel Dispatch Protocol** in `RULES.md` — call the `task` tool multiple times before waiting.
-
-**Backend / Architecture Analysis** — `@architect`
-Use the `task` tool. Pass this prompt:
-"Analyze: $ARGUMENTS
-Context: [paste relevant backend file excerpts and idea_research.md]
-Focus: Technical feasibility, API design, database impact, data flow, performance risks, security considerations, edge cases
-Output: At least 2 backend solution options with pros/cons and recommended approach"
-Target: `codebase/`.
-
-**Frontend / UX Analysis** — `@frontend-engineer`
-Use the `task` tool. Pass this prompt:
-"Analyze: $ARGUMENTS
-Context: [paste relevant UI/component file excerpts]
-Focus: Component structure, UI flow, state management, accessibility, responsiveness, design system
-Output: At least 2 frontend solution options with pros/cons and recommended approach"
-Target: `codebase/`.
-
-**Wait for BOTH responses before proceeding to Phase 5.**
-
----
-
-## Phase 5: Solution Synthesis
-
-`[Mode: Synthesis]`
-
-1. Synthesize backend + frontend analyses into unified approach
-2. Present a side-by-side comparison (2+ full-stack options) using the following structure:
-
-```markdown
-### Selected Approach
-<Description of the synthesized solution>
-
-### Component Structure
-<Diagram or list of components and relationships>
-
-### Implementation Steps
-1. <Backend step> (File: path/to/service.ts)
-   - Action: ...
-   - Risk: Low/Medium/High
-2. <Frontend step> (File: path/to/Component.tsx)
-   - Action: ...
-   - Risk: Low/Medium/High
-
-### Key Files
-| File | Layer | Operation | Description |
-|------|-------|-----------|-------------|
-
-### Risks and Mitigations
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-
-### Security Checklist
-- [ ] Input validation at API boundaries
-- [ ] SQL injection protection
-- [ ] Authentication/authorization verified
-- [ ] No hardcoded secrets
-- [ ] Error messages do not leak sensitive data
-
-### Accessibility Checklist
-- [ ] Keyboard navigation works correctly
-- [ ] ARIA labels on interactive elements
-- [ ] Color contrast meets WCAG AA
-- [ ] Responsive at mobile / tablet / desktop breakpoints
-```
-
-3. Proceed directly to Phase 6 to generate the roadmap based on this synthesis.
-
----
-
-## Phase 6: Roadmap Generation
-
-`[Mode: Roadmap]`
-
-1. Assume developer is staring at empty project directory (Phase 0)
-2. Read all data from Phases 1-5. Treat user input as a REFERENCE SPECIFICATION ONLY.
-3. Execute: Write `plans/$SCOPE/roadmap.md` with **three sections**:
-
----
-
-**Section 1 — Write Scopes** (the "who owns what")
-
-Include a table defining the dynamic authority boundaries for this project:
-```markdown
-### Write Scopes
-| Agent | Authorized Directory Scopes | Conceptual Domain |
-|-------|-----------------------------|-------------------|
-| orchestrator | `plans/`, `docs/`, `codebase/README.md` | Secretary / Border Guard |
-| architect | <Defined based on project tree, e.g. `codebase/src/core/`> | Logic / Engine |
-| planner | <Defined based on project tree, e.g. `codebase/src/ui/`> | Interface / Assets |
-```
-
-
----
-
----
-
-**Section 2 — Roadmap** (the "when")
-
-
-```markdown
-## Roadmap
-
-### Phase N — [Phase Name] (~N days, M tasks)
-Brief description of what this phase accomplishes.
-
-**Day 1**
-- [ ] Task 1 (Atomic, 15 min or less)
-- [ ] Task 2
-- [ ] Task 3
-
-**Day 2**
-- [ ] Task 1
-- [ ] Task 2
-
-**Deliverable:** What is working and verifiable at the end of this phase.
-```
-
-Roadmap rules:
-- Minimum Phase 0 through Phase 2
-- Single-task Day NOT acceptable: Minimum 2 days per phase
-- Tasks MUST be future tense ("Implement X", "Configure Y")
-- Do NOT describe existing code as "already implemented"
-- **Implementation Root**: All generated file paths MUST be prefixed with `codebase/`.
-- Tasks mix backend and frontend steps in natural sequence
-
----
-
----
-
-**Section 3 — Implementation Plan** (the "how")
-
-
-Append directly to `plans/$SCOPE/roadmap.md` after the roadmap. Pull from the Phase 5 synthesis output:
-
-```markdown
-## Implementation Plan
-
-### Selected Approach
-<Synthesized solution confirmed by user in Phase 5>
-
-### Component Structure
-<Diagram or list of components and relationships>
-
-### Implementation Steps
-1. <Backend step> (File: path/to/service.ts)
-   - Action: ...
-   - Risk: Low/Medium/High
-2. <Frontend step> (File: path/to/Component.tsx)
-   - Action: ...
-   - Risk: Low/Medium/High
-
-### Key Files
-| File | Layer | Operation | Description |
-|------|-------|-----------|-------------|
-
-### Risks and Mitigations
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-
-### Security Checklist
-- [ ] Input validation at API boundaries
-- [ ] SQL injection protection
-- [ ] Authentication/authorization verified
-- [ ] No hardcoded secrets
-- [ ] Error messages do not leak sensitive data
-
-### Accessibility Checklist
-- [ ] Keyboard navigation works correctly
-- [ ] ARIA labels on interactive elements
-- [ ] Color contrast meets WCAG AA
-- [ ] Responsive at mobile / tablet / desktop breakpoints
-```
+   **Section C — Implementation Plan**:
+   ```markdown
+   ## Implementation Plan
+   
+   ### Selected Approach
+   <Synthesized from Wave 2>
+   
+   ### Key Files
+   | File | Layer | Description |
+   |------|-------|-------------|
+   ```
 
 ---
 
 ## Completion Checklist
 
-- [ ] `plans/$SCOPE/idea_research.md` — Project brief (goal, task, constraints)
-- [ ] `plans/$SCOPE/coding_convention.md` — Tech-stack specific rules
-- [ ] `plans/$SCOPE/INSTRUCTIONS.md` — Workspace boundaries + conventions
-- [ ] `plans/$SCOPE/roadmap.md` — Roadmap (Phase/Day/Task timeline) + Implementation Plan (steps, files, risks, checklists)
+- [ ] `plans/$SCOPE/idea_research.md` — Project brief
+- [ ] `plans/$SCOPE/coding_convention.md` — Tech conventions
+- [ ] `plans/$SCOPE/INSTRUCTIONS.md` — Project rules
+- [ ] `plans/$SCOPE/roadmap.md` — Full roadmap + implementation plan
 
-**Output:**
+**Output**:
 ```
 ## Bootstrap Complete [$SCOPE]
 
 Generated 4 context files in plans/$SCOPE/
+Complexity: [Simple/Medium/Complex]
+Waves Executed: [1/2/3]
 ```
 
 ---
 
-**Please review the generated files. You can:**
-- **Modify**: Tell me what needs adjustment and I will update the file
-- **Execute**: Run `/routine $SCOPE P1D1` to begin implementation
+## Obsidian Integration
+
+Configure Obsidian vault to project root (`./`). Obsidian automatically indexes all `plans/` subdirectories, showing all feature roadmaps.
+
+No dual-write needed - single source of truth in `plans/`.
+
+---
+
+**Next Steps**:
+- Execute: `/routine $SCOPE P1D1` to begin implementation
+- Inject: `/inject $SCOPE <new-feature>` to add to roadmap
