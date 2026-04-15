@@ -1,101 +1,163 @@
 ---
-description: Incrementally inject new project requirements into a specific scoped roadmap without overwriting prior work.
-agent: planner
+description: Incrementally inject new requirements into existing roadmap using wave-based orchestration. Surgical updates without data loss.
+agent: orchestrator
 ---
 
-# Inject: Context Evolution Pipeline
+# Inject: Surgical Roadmap Evolution
 
-Surgically inject new requirements into an existing project.
-You must use your tool capabilities to execute each step sequentially by writing the actual files to the filesystem.
-
-**New User Context / Requirements to Inject:**
-$ARGUMENTS
+Add new requirements to an existing roadmap without overwriting prior work. Uses wave-based orchestration for efficient processing.
 
 ---
 
-## Core Protocols
+## Core Principles
 
-- **OpenCode Native**: Uses built-in agent subtasks — no external binaries required
-- **Code Sovereignty**: Only the orchestrating planner writes files; analysis agents are read-only
-- **Stop-Loss**: Do not proceed to the next phase until the current phase output is validated
+- **Surgical Update**: Only modify affected sections; preserve completed phases
+- **Orchestrator as Conductor**: Orchestrator writes files; subagents provide content
+- **Wave-Based**: Parallel execution where possible, sequential where required
+- **Single Source**: All files in `plans/$SCOPE/` - Obsidian sees via project root
 
-## GLOBAL OUTPUT RULE: NO EMOJIS
-You are STRICTLY FORBIDDEN from using emojis in any generated updates. All output must be plain professional text.
+---
 
-## PROJECT NAMING RULE
-The "Project Name" is defined as the **name of the parent folder** where the `.opencode/` and `plans/$SCOPE/` folders reside. Use `pwd` or directory inspection to extract this, and use it in all documentation.
+## Input
 
-## Phase 0: Scoping Interrogation (MANDATORY STOP)
+**New Requirements:** $ARGUMENTS
 
- `[Mode: Scoping]`
+Format: `/inject $SCOPE <requirements>`
 
-1. Parse `$ARGUMENTS` to identify the **Scope** (default: `core`).
-2. Read `plans/$SCOPE/roadmap.md` and `plans/$SCOPE/idea_research.md`.
+---
 
-Before you start the gap analysis or modify any files, you MUST clarify the constraints of these new requirements.
+## Phase 0: Scan & Route (MANDATORY FIRST)
 
-Use the `question` tool to present these questions in a single call:
-- **Severity & Priority**: "How urgent is this requirement?"
-  - Options: ["Immediate blocking hotfix", "High priority (this sprint)", "Medium priority (backlog)", "Low priority (future consideration)"]
-- **Architecture Impact**: "What's the scope of this change?"
-  - Options: ["Isolated UI component (frontend only)", "Service/API change (backend only)", "Full-stack feature (both)", "Core architecture shift (database/schema)"]
+`[Mode: Scan]`
 
-You MUST invoke the `question` tool NOW and WAIT for user selection before proceeding to Phase 1.
+1. **Parse Scope**: Extract `$SCOPE` from `$ARGUMENTS` (first word)
+2. **Read Existing Context**:
+   - `plans/$SCOPE/roadmap.md` - current roadmap
+   - `plans/$SCOPE/idea_research.md` - project brief
+   - `plans/$SCOPE/coding_convention.md` - conventions
 
-## Phase 1: Gap Analysis & Research
+3. **Classify Injection Type**:
+   | Type | Criteria | Wave Pattern |
+   |------|----------|--------------|
+   | **Simple** | Single phase addition, no new domain | Skip waves, direct to planner |
+   | **Medium** | New phase, 1-2 affected areas | Wave 2 only (architect) |
+   | **Complex** | Cross-cutting concern, multiple domains | Full wave pattern |
+
+4. **User Clarification** (via `question` tool):
+   - Severity: Immediate / High / Medium / Low
+   - Scope: UI only / Backend only / Full-stack / Architecture shift
+
+5. **MANDATORY STOP**: Wait for answers before processing
+
+---
+
+## Wave 1: Impact Analysis (If Needed)
 
 `[Mode: Research]`
 
-- **Agent**: researcher
+**Trigger**: If injection requires research on new tech/patterns
 
-1. Read the provided `$ARGUMENTS` and incorporate user's answers from Phase 0.
-2. Open `plans/$SCOPE/idea_research.md`.
-   - **Condition A (Previously SKIPPED):** If the file contains `# IDEA RESEARCH: SKIPPED`, the project used to be simple but is now evolving. Delete the SKIPPED message, treat the file as a blank slate, and initialize it with the new ideas and research gathered from `$ARGUMENTS`.
-   - **Condition B (Already has content):** Safely cross-reference the new concepts and append them. Do NOT destroy historical notes.
-3. Execute: Write the updates to `plans/$SCOPE/idea_research.md`.
+**Parallel**:
+- `@researcher`: Analyze new requirements impact
+- `@fact-checker`: Verify claims against existing context
 
----
-
-## Phase 2: Guardrail Updates
-
-`[Mode: Architecture]`
-
-- **Agent**: architect
-
-1. Read `plans/$SCOPE/coding_convention.md` and `plans/$SCOPE/INSTRUCTIONS.md`.
-2. Determine if the new requirements introduce a fundamental paradigm shift to the tech stack.
-3. Execute: If a shift occurred, surgically append the new structural rules to those files. If no shift occurred, leave them untouched.
+**Skip** if requirements are straightforward.
 
 ---
 
-## Phase 3: Surgical Roadmap Injection
+## Wave 2: Affected Domain Analysis
 
-`[Mode: Roadmap]`
+`[Mode: Analysis]`
 
-- **Agent**: planner
+**Parallel** (based on injection scope):
 
-1. Read the current `plans/$SCOPE/roadmap.md` — both the `## Roadmap` section and the `## Implementation Plan` section.
-2. Determine where this new context fits into the project timeline.
-3. **SURGICAL INJECTION:** Do *not* rewrite the entire roadmap. Do *not* change completed phases. You must securely weave the new tasks into the existing structure:
-   - If the feature supplements a current active Phase, append new Tasks to existing Days, or add a new Day.
-   - If it is a completely new feature, append a new Phase to the bottom of the Roadmap section.
-4. Keep the strict `Phase > Day > Task` hierarchy intact.
-5. **Update Implementation Plan section:** If the new requirements introduce new Key Files, Risks, or affect Security/Accessibility checklists, surgically append to those tables and checklists. Do NOT overwrite existing entries.
-6. Execute: Write the updated roadmap to `plans/$SCOPE/roadmap.md`.
+### Backend Impact — `@architect`
+```
+Analyze: New requirements $ARGUMENTS
+Context: Read plans/$SCOPE/coding_convention.md
+Output: Does this require tech stack update? Y/N + rationale
+```
+
+### Frontend Impact — `@frontend-engineer` (if UI-related)
+```
+Analyze: New requirements $ARGUMENTS
+Context: Read existing UI patterns in plans/
+Output: UI component impact assessment
+```
+
+**Wait for responses**
+
+---
+
+## Phase: Synthesis & Surgical Update
+
+`[Mode: Update]`
+
+**Orchestrator Tasks**:
+
+1. **Determine Injection Point**:
+   - Review current roadmap phases
+   - Identify where new work fits
+   - Mark affected vs unaffected phases
+
+2. **Update `plans/$SCOPE/idea_research.md`**:
+   - Append new goals/tasks without removing existing
+   - Update constraints if tech stack shifted
+   - Preserve historical context
+
+3. **Update `plans/$SCOPE/coding_convention.md`**:
+   - Append new conventions only if paradigm shift
+   - Do NOT rewrite existing rules
+
+4. **Update `plans/$SCOPE/roadmap.md`**:
+   
+   **Surgical Rules**:
+   - DO NOT modify completed phases
+   - DO NOT rewrite existing days
+   - ADD new tasks to existing days if supplementing current phase
+   - ADD new phase at bottom if completely new feature
+   - Preserve `## Implementation Plan` section, append to tables if needed
+
+   ```markdown
+   <!-- Add to appropriate location -->
+   
+   ### Phase N+1 — [New Feature]
+   
+   **Day 1**
+   - [ ] New task 1
+   - [ ] New task 2
+   
+   **Deliverable:** <what this achieves>
+   ```
 
 ---
 
 ## Completion Checklist
 
-- [ ] `plans/$SCOPE/idea_research.md` — reconciled with new context
-- [ ] `plans/$SCOPE/coding_convention.md` — updated for tech shifts (or confirmed unchanged)
-- [ ] `plans/$SCOPE/roadmap.md` Roadmap section — surgically updated (no data loss)
-- [ ] `plans/$SCOPE/roadmap.md` Implementation Plan section — updated if new files, risks, or checklists apply
+- [ ] `plans/$SCOPE/idea_research.md` — reconciled (or confirmed unchanged)
+- [ ] `plans/$SCOPE/coding_convention.md` — updated (or confirmed unchanged)
+- [ ] `plans/$SCOPE/roadmap.md` — surgically updated, no data loss
 
-Once verified, report the successful Context Injection to the user.
+**Output**:
+```
+## Inject Complete [$SCOPE]
+
+Injection Type: [Simple/Medium/Complex]
+Phases Affected: [list]
+New Tasks Added: [count]
+```
+
+---
 
 ## Usage
+
 ```bash
-/inject core "add social login support"
-/inject billing "handle VAT for EU customers"
+/inject core           # Add to core roadmap
+/inject billing        # Add to billing roadmap
+/inject auth           # Add to auth roadmap
+```
+
+**Example**:
+```
+/inject billing add VAT handling for EU customers
 ```
