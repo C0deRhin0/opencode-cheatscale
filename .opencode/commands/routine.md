@@ -5,88 +5,98 @@ agent: orchestrator
 
 # Routine: $ARGUMENTS
 
-Full execution pipeline with **atomic checkpointing** — every completed task gets its own commit before the next task begins. Inherits all execution logic from `/execute` and adds the mandatory checkpoint loop.
+Full execution pipeline with **atomic checkpointing** — every completed task gets its own commit before the next task begins. Uses wave-based orchestration with dynamic agent routing.
 
 ---
 
-- **Workspace Scoping**: All application code, assets, configs MUST be written to `codebase/`.
-- **Git Scoping**: All git operations MUST be within `codebase/`.
-- **Stop-Loss**: Do not proceed to next phase until current phase output is validated.
-- **Phase Isolation**: You MUST terminate response and wait for user confirmation ('PROCEED') after every Phase marked 'MANDATORY STOP'.
-- **Code Sovereignty**: You do NOT write implementation code directly; you delegate to domain specialists via `task` tool.
-- **Immutability**: Always create new objects; never mutate existing state.
-- **Domain Authority**: Domain specialists own their scopes; boundary changes go through architect.
-- **Anti-Batching**: 1 Task = 1 Implementation = 1 Commit. No combining tasks.
-- **No Auto-Pushing**: You must STOP and await human confirmation after delivery.
-- **Multi-Roadmap Support**: The instruction path is determined by `$SCOPE` argument.
-- **Parallelism**: Follow **Parallel Dispatch Protocol** in `RULES.md`.
-- **Complexity Gating**: ALWAYS classify task BEFORE spawning agents:
-  - **Simple** (1 domain, clear requirements): Only spawn 1 writer agent + 1 relevant reviewer
-  - **Medium** (2 domains): Spawn relevant writers + Wave 3 reviewers
-  - **Complex** (3+ domains, ambiguous): Spawn full wave roster minus irrelevant
+## Core Protocols
 
-**Pre-Dispatch Protocol** (BEFORE any agent spawns):
-1. Classify task complexity: Simple / Medium / Complex
-2. Determine affected domains from Router Decision Matrix
-3. Assign file scopes based on actual project structure (Phase 0: Scan)
-4. Only spawn agents needed for that complexity level
-5. NEVER spawn all agents - skip irrelevant ones
-
-## GLOBAL OUTPUT RULE: NO EMOJIS
-You are STRICTLY FORBIDDEN from using emojis in any generated output.
+- **Workspace Scoping**: All application code, assets, configs to `codebase/`
+- **Git Scoping**: All git operations within `codebase/`
+- **Stop-Loss**: Do not proceed until current phase validated
+- **Phase Isolation**: MANDATORY STOP after each phase
+- **Code Sovereignty**: Orchestrator delegates; specialists write
+- **Immutability**: Always create new objects; never mutate
+- **Domain Authority**: Specialists own scopes; changes through architect
+- **Anti-Batching**: 1 Task = 1 Implementation = 1 Commit
+- **No Auto-Pushing**: STOP and await human confirmation
+- **Parallelism**: MANDATORY - parallel dispatch where possible
 
 ---
 
-## Available Agents
+## Complexity Gating
 
-| Agent | Specialty | Use For |
-|-------|-----------|---------|
-| planner | Task decomposition | Ambiguous tasks, complex multi-domain |
-| architect | Backend systems | API, database, infrastructure |
-| frontend-engineer | UI implementation | Components, pages, layouts |
-| database-engineer | Schema/migrations | Database design, SQL |
-| devops-engineer | CI/CD, Docker | Pipelines, deployment |
-| integration-engineer | External APIs | Third-party integrations |
-| ml-engineer | ML/AI | Model integration |
-| code-reviewer | Code quality | Review changes |
-| security-reviewer | Security | Vulnerability detection |
-| performance-reviewer | Performance | Bottlenecks, latency |
-| accessibility-reviewer | Accessibility | WCAG compliance |
-| qa-engineer | Test coverage | Edge cases, regression |
-| tdd-guide | Test-driven dev | Feature implementation |
-| build-error-resolver | Build fixes | TypeScript/build errors |
-| e2e-runner | E2E testing | User flow testing |
-| doc-updater | Documentation | Updating docs |
-| refactor-cleaner | Code cleanup | Dead code removal |
-| critic | Adversarial review | Stress test proposals |
-| researcher | Research | Investigations |
-| fact-checker | Verification | Validate claims |
+**ALWAYS classify task BEFORE spawning agents:**
+
+| Complexity | Criteria | Agents Spawned |
+|------------|----------|----------------|
+| **Simple** | 1 domain, clear requirements | 1 writer + 1 reviewer |
+| **Medium** | 2-3 domains, partial clarity | Relevant writers + Wave 3 reviewers |
+| **Complex** | 3+ domains, ambiguous | Full wave roster minus irrelevant |
 
 ---
 
-## Enterprise Orchestration Pattern
+## Phase 0: Scan & Dynamic Routing (MANDATORY FIRST)
 
-```text
-Root Supervisor [Orchestrator]
-    │
-    ├── [Router] → selects relevant sub-supervisors
-    │
-    ├── Sub-Supervisor A (backend)   ← PARALLEL
-    │       ├── Architect (parallel)
-    │       ├── Database Engineer (parallel)
-    │       └── Integration Engineer (parallel)
-    │
-    ├── Sub-Supervisor B (frontend)  ← PARALLEL
-    │       ├── Frontend Engineer (parallel)
-    │       └── (code-reviewer via Wave 3)
-    │
-    └── [Reducer] → synthesizes all outputs
-            │
-            └── [Critic/Validator] → final gate before delivery
+`[Mode: Scan]`
 
-NOTE: PARALLELISM IS MANDATORY. All branches at the same indentation level
-execute concurrently. Never wait for one branch before spawning the next.
-```
+1. **Project Scan**: `ls -laF` to confirm structure
+2. **Read Context**: `plans/$SCOPE/roadmap.md`, `INSTRUCTIONS.md`, `coding_convention.md`
+3. **Task Analysis**: Parse tasks from roadmap, determine domain requirements
+
+### Dynamic Agent Router
+
+**Based on task requirements, SELECT agents from full roster:**
+
+| Task Type | Detection | Primary Agents | Secondary (if needed) |
+|-----------|-----------|-----------------|----------------------|
+| **Backend API** | endpoints, services, controllers | architect | security-reviewer, code-reviewer |
+| **Database** | schema, migrations, queries | database-engineer, database-reviewer | architect |
+| **Frontend UI** | components, pages, styles | frontend-engineer | accessibility-reviewer, code-reviewer |
+| **CI/CD** | pipelines, docker, deployment | devops-engineer | security-reviewer |
+| **External API** | integrations, webhooks | integration-engineer | security-reviewer |
+| **ML/AI** | models, embeddings, prompts | ml-engineer | architect |
+| **Tests** | unit, integration, e2e | tdd-guide, qa-engineer | e2e-runner |
+| **Build/DevOps** | errors, types, config | build-error-resolver | tdd-guide |
+| **Docs** | readme, guides, codemaps | doc-updater | - |
+| **Refactor** | cleanup, dead code | refactor-cleaner | code-reviewer |
+| **Ambiguous** | vague requirements | planner | architect, researcher |
+| **Full-Stack** | frontend + backend | architect + frontend-engineer | security-reviewer, qa-engineer |
+
+**Rule**: Spawn ONLY the agents needed for the task. Never spawn all agents.
+
+---
+
+## Full Agent Roster (24 Agents)
+
+| Agent | Specialty | When to Use |
+|-------|-----------|-------------|
+| **DOMAIN WRITERS** | | |
+| architect | Backend systems, API, architecture | API, services, infrastructure |
+| frontend-engineer | UI/UX, components, layouts | UI, components, pages |
+| database-engineer | Schema, migrations, SQL | DB design, migrations |
+| devops-engineer | CI/CD, Docker, deployment | Pipelines, containers |
+| integration-engineer | External APIs, webhooks | Third-party integrations |
+| ml-engineer | ML/AI, embeddings, prompts | AI features, models |
+| **QUALITY AGENTS** | | |
+| code-reviewer | Code quality, patterns | All implementations |
+| security-reviewer | Vulnerabilities, auth | Sensitive code, auth |
+| performance-reviewer | Bottlenecks, latency | Performance-critical code |
+| accessibility-reviewer | WCAG, keyboard, screen reader | UI components |
+| qa-engineer | Test coverage, edge cases | Test validation |
+| tdd-guide | Test-driven development | Feature implementation |
+| e2e-runner | End-to-end testing | Critical user flows |
+| build-error-resolver | Build errors, type errors | When build fails |
+| **UTILITY AGENTS** | | |
+| refactor-cleaner | Dead code, cleanup | Maintenance tasks |
+| doc-updater | Documentation, codemaps | Documentation updates |
+| planner | Task decomposition | Complex/ambiguous tasks |
+| **WAVE 1 AGENTS** | | |
+| researcher | Investigation, synthesis | Unknowns, research |
+| fact-checker | Verification, accuracy | Validate claims |
+| **WAVE 6 AGENTS** | | |
+| critic | Adversarial review | Stress-test plans |
+| reducer | Output synthesis | Merge parallel outputs |
 
 ---
 
@@ -94,176 +104,103 @@ execute concurrently. Never wait for one branch before spawning the next.
 
 **Task**: $ARGUMENTS
 
-## Phase 0: Context Synchronization
+### Phase 1: Context Synchronization
 
 `[Mode: Sync]`
 
-1. Identify **Scope** and **Target**:
-   - Parse `$ARGUMENTS`. Format: `[SCOPE] [PHASE/DAY]` (e.g., `core P1D1`, `auth Phase 1 Day 2`).
-   - If only one argument is provided (e.g., `P1D1`), default **Scope** to `core`.
-   - Resolve the roadmap path: `plans/$SCOPE/roadmap.md`.
-2. Read `plans/$SCOPE/roadmap.md`, `plans/$SCOPE/INSTRUCTIONS.md`, and `plans/$SCOPE/coding_convention.md`.
-3. Confirm project root with `ls -laF`.
-
-### Phase 1: Plan Resolution
-
-`[Mode: Prepare]`
-
-1. Read `plans/$SCOPE/roadmap.md` — both the Roadmap section and the Implementation Plan section.
-2. Match `$ARGUMENTS` against the roadmap phases, days, or tasks.
-3. If no match is found and no Implementation Plan section exists, ask user to run `/bootstrap` first.
-4. Extract the target Phase/Day and decompose into **Atomic Tasks** (max 15 minutes each).
-5. Map each task to its optimal specialist agent based on the Available Agents table.
-6. **MANDATORY STOP**: Present the task breakdown to user. You MUST physically terminate your response here and WAIT for user confirmation before proceeding. DO NOT BEGIN PHASE 2.
-
-**Task Type Routing**:
-
-| Task Type | Detection | Primary Agent |
-|-----------|-----------|---------------|
-| Frontend | Pages, components, UI, styles, layout | `frontend-engineer` |
-| Backend | API, database, logic, algorithms | `architect` |
-| Full-stack | Both frontend and backend | Both, IN PARALLEL |
-| Ambiguous | Vague requirements, complex | `planner` (decompose first) |
+1. Parse `$ARGUMENTS` - format: `[SCOPE] [PHASE/DAY]` (e.g., `core P1D1`)
+2. Read roadmap, instructions, conventions
+3. Extract atomic tasks (15 min max each)
 
 ### Phase 2: Context Retrieval
 
- `[Mode: Retrieval]`
+`[Mode: Retrieval]`
 
-**MANDATORY PARALLELISM**: Read files in PARALLEL using multiple grep/find calls in single turn.
-Based on the plan's Key Files table:
-1. Use MULTIPLE `grep` and `find` calls CONCURRENTLY to locate and read all relevant source files.
-2. Confirm complete context before implementation.
-3. If insufficient, read additional files as needed PARALLEL.
+**MANDATORY PARALLELISM**: Read files in PARALLEL
+- Use multiple `grep`/`find` calls concurrently
+- Get all relevant source files before implementation
 
 ### Phase 3: Checkpoint Execution Loop
 
 `[Mode: Implement]`
 
-For **each** atomic task identified in Phase 1, execute this loop:
+For **each atomic task**:
 
-#### Step A — Implement & Verify
+#### Step A — Dynamic Agent Dispatch
 
-**MANDATORY PARALLELISM**: For full-stack atomic tasks, invoke BOTH sub-supervisors in PARALLEL.
-**Instruction**: Use the `task` tool to spawn ALL relevant Sub-Supervisors in PARALLEL. Pass this prompt to each:
-"1. **Execute and Write**: Use your own `write`/`edit` tools to implement this task: [Task Name]
-2. **Implementation Root**: All files modified MUST reside inside `codebase/` and within your designated domain.
-3. Follow the plan strictly — do not deviate.
-4. Verify your changes natively (run type checker/linter, tests, fix regressions).
-5. Spawn your designated code-reviewer to perform an atomic quality gate check on the files modified.
-6. Return PASS or the handled issues summary."
+Based on **Task Type** from Phase 0 router, spawn relevant agents in PARALLEL:
 
-**CRITICAL**: For full-stack tasks, spawn BOTH @architect AND @frontend-engineer in a single turn. Wait for ALL to complete before checkpoint.
-
-#### Step B & C — Handled by Sub-Supervisor
-(The invoked Sub-Supervisor natively handles Verification and Quality Gates. If they report FAILURE, command them to fix before proceeding.)
-
-#### Step D — Atomic Checkpoint
-
-1. Scope all git operations to `codebase/`.
-2. Run `git add .` within `codebase/`.
-3. Commit with the format: `<type>: <description> [$SCOPE:PnDm]`
-   - Example: `feat: add auth [core:P1D1]`
-   - The `<type>` AND/OR `<description>` MUST NOT contain any duplicate phase references (e.g., strip out any `[Phase N Day M]` prefixes from the raw task name). The tag MUST ONLY exist at the very end of the template.
-   - The `[PnDm]` suffix is MANDATORY for routine commits.
-4. Do NOT push. Commits stay local for the drip-feeder queue.
-5. Do NOT proceed to the next task until this commit is confirmed.
-
-#### Self-Healing
-
-If you accidentally implement multiple tasks without checkpointing:
-1. STOP immediately.
-2. Run `git reset --soft` to the last checkpoint.
-3. Split the implementation into atomic components.
-4. Create the required sequential commits before proceeding.
-
-**Repeat Steps A-D for every task in the Phase/Day.**
-
----
-
-### Phase 3: Dual-Perspective Audit
-
- `[Mode: Audit]`
-
-After all tasks in the target Phase/Day are implemented and committed, run a final security/quality audit.
-**MANDATORY PARALLELISM**: Spawn ALL audit branches in a SINGLE turn task array. Never sequential.
-
-**Instruction**: Use the `task` tool to invoke BOTH `@architect` AND `@frontend-engineer` in parallel. Pass this prompt:
-
-"To BOTH sub-supervisors: After all atomic tasks complete, run concurrent audits across the Phase/Day.
-- `@architect` branch: Spawn `@security-reviewer` to audit all modified backend files. Focus: vulnerabilities, API compliance, DB ops. Return prioritized issue list and apply fixes directly.
-- `@frontend-engineer` branch: Spawn `@code-reviewer` to audit all modified frontend files. Focus: accessibility, re-renders, design patterns. Return prioritized issue list and apply fixes directly.
-
-**CRITICAL**: Run ALL audits in parallel. Spawn ALL task calls before waiting. Each fix uses Atomic Checkpoint (Step D)."
-
-**MANDATORY STOP**: Present the audit summary. You MUST physically terminate your response here and WAIT for user confirmation before proceeding to Phase 4. DO NOT BEGIN PHASE 4.
-
-### Phase 4: Documentation Sovereignty (MANDATORY)
-
- `[Mode: Documentation]`
-
-**MANDATORY PARALLELISM**: Run documentation and validation CONCURRENTLY.
-**Instruction**: Use the `task` tool to invoke `@doc-updater` AND `@critic` in PARALLEL.
-- To `@doc-updater`: "1. Read `codebase/README.md` and verify against `plans/$SCOPE/INSTRUCTIONS.md` 2. Sync: if new features, APIs, or setup steps are not reflected, update the README 3. Output: List of sections updated or 'README is current'"
-- To `@critic`: "Adversarially verify the complete Phase 1-3 output. Focus on: edge cases, security gaps, architectural debt, missing error handling. Return: [CRITICALissues], [HIGH-issues], [recommendations]"
-
-**CRITICAL**: Spawn BOTH in a single turn. Wait for ALL before Phase 5.
-
-### Phase 5: Delivery
-
-`[Mode: Deliver]`
-
-1. Run full test suite or equivalent.
-2. Invoke `e2e-runner` to verify critical user flows for the implemented features.
-3. Confirm all checkout queue commits were successful and that the local branch is correctly ahead of the remote.
-4. Display the checkpoint queue: `git log origin/main..main --oneline`
-5. Verify every commit has the correct `[$SCOPE:PnDm]` suffix.
-6. Report:
-
-```markdown
-## Routine Complete: [$SCOPE:PnDm]
-
-### Checkpoint Queue
-| # | Hash | Message |
-|---|------|---------|
-| 1 | abc1234 | feat: ... [$SCOPE:P1D1] |
-| 2 | def5678 | feat: ... [$SCOPE:P1D1] |
-
-### Change Summary
-| File | Layer | Operation | Description |
-|------|-------|-----------|-------------|
-
-### Audit Results
-- Backend/Security: <Passed / N issues fixed>
-- Frontend/Quality: <Passed / N issues fixed>
-- E2E: <Passed / N scenarios verified>
-- Documentation: <Updated / Current>
-
-### Follow-up Items
-- [ ] <Deferred MEDIUM/LOW items>
-- [ ] <Suggested next steps>
-- [ ] **Await user command** to run `/push [$SCOPE:PnDm]` (DO NOT execute this yourself)
+**Example - Backend Task**:
+```
+Invoke @architect + @code-reviewer in parallel
 ```
 
+**Example - Full-Stack Task**:
+```
+Invoke @architect + @frontend-engineer + @security-reviewer + @qa-engineer in parallel
+```
+
+**Example - Database Task**:
+```
+Invoke @database-engineer + @database-reviewer in parallel
+```
+
+**Task Prompt Template**:
+```
+1. Execute: [Task Name] from plans/$SCOPE/roadmap.md
+2. Implementation Root: All files in codebase/ within your domain scope
+3. Follow: plans/$SCOPE/coding_convention.md
+4. Verify: Run tests/linter, fix regressions
+5. Quality Gate: Spawn your designated reviewer
+6. Output: PASS or issues handled
+```
+
+#### Step B — Quality Gates
+
+Reviewer agents validate. If FAIL, dispatch back to writer for fixes.
+
+#### Step C — Atomic Checkpoint
+
+1. Git add + commit within `codebase/`
+2. Format: `<type>: <description> [$SCOPE:PnDm]`
+3. Do NOT push - commits stay local
+
+**Repeat for every task**
+
 ---
 
-## Key Rules
+### Phase 4: Final Audit
 
-1. **PARALLELISM FIRST**: ALWAYS execute branches at same level in parallel. Never sequential.
-2. **COMPLEXITY GATING**: Classify task first (Simple/Medium/Complex) - only spawn relevant agents
-3. 1 Task = 1 Commit. No exceptions. No batching.
-4. Never modify files outside the plan's scope without user approval.
-5. All reviewer agents have read-only access — only domain writers implement
-6. Domain Authority: `architect` (backend), `frontend-engineer` (frontend), `planner` (decomposition only)
-7. Mandatory dual-perspective audit after all tasks in the Phase/Day are complete.
-8. Fix CRITICAL issues before delivery; document MEDIUM/LOW for follow-up.
-9. All branches above execute CONCURRENTLY - wait for ALL before advancing
-10. Documentation must be current before delivery is declared.
-11. The `[$SCOPE:PnDm]` suffix is reserved exclusively for `/routine` commits.
+`[Mode: Audit]`
+
+After all tasks complete, **parallel audit**:
+- `@security-reviewer` - Security scan
+- `@qa-engineer` - Test coverage check
+- `@doc-updater` - Sync README
+
+---
+
+## Output Format
+
+```
+## Routine Complete [$SCOPE:PHASE/DAY]
+
+Tasks Completed: [n]
+Commits: [n]
+Agents Used: [list]
+Issues Resolved: [count]
+```
 
 ---
 
 ## Usage
+
 ```bash
-/routine core P1D1
-/routine billing Phase 2 Day 1
+/routine core P1D1           # Execute Day 1 of Phase 1
+/routine billing Phase2     # Execute entire Phase 2
+/routine auth P3D2 task-3  # Specific task only
 ```
+
+---
+
+**Key Principle**: Dynamically route to relevant agents based on task type. Never spawn all 24 agents. Classify, route, execute.
