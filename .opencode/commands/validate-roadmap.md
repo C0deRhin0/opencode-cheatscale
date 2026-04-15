@@ -1,89 +1,213 @@
 ---
-description: VERIFY, VALIDATE, REVIEW, and SCOPE a specific roadmap.md
+description: Adversarial review and validation of roadmap using wave-based quality gates.
 agent: orchestrator
 ---
 
-# Validate Roadmap: Adversarial Review Pipeline
+# Validate Roadmap: Quality Assurance Pipeline
 
-Your sole purpose is to act as the MoE Router and orchestrate an adversarial project manager review. You will delegate the review of `plans/$SCOPE/roadmap.md` to the `@critic`.
-You must use your tool capabilities to execute this review sequentially.
-
----
-
-## GLOBAL OUTPUT RULE: NO EMOJIS
-You are STRICTLY FORBIDDEN from using emojis in any generated updates or messages. All output must be plain professional text.
+Verify, validate, and review roadmap using parallel quality agents. Uses wave-based orchestration for comprehensive validation.
 
 ---
 
-## Phase 1: Pre-Flight Scoping (MANDATORY STOP)
+## Core Principles
 
- `[Mode: Scoping]`
-
-1. Parse `$ARGUMENTS` to identify the **Scope**.
-   - If missing, default to `core`.
-   - Targeted path: `plans/$SCOPE/roadmap.md`.
-
-2. Use the `question` tool to gather user constraints. Present these questions in a single call:
-   - **Timeline**: "What's your target timeline?"
-     - Options: ["ASAP (aggressive)", "Standard (2-4 weeks)", "Relaxed (1+ months)"]
-   - **Team Size**: "How many developers are working on this?"
-     - Options: ["Solo (1 developer)", "Small team (2-5)", "Large team (6+)"]
-   - **Priority**: "What's the primary focus?"
-     - Options: ["Speed to Market (MVP first)", "Scalability (enterprise grade)", "Balanced"]
-   - **Tech Confidence**: "How confident are you in the current tech stack?"
-     - Options: ["Very confident (stick with it)", "Somewhat unsure (open to changes)", "Need validation (review the stack)"]
-
-3. **MANDATORY STOP**: You MUST invoke the `question` tool NOW and WAIT for user selection before proceeding to Phase 2. DO NOT BEGIN PHASE 2 until you have the user's answers.
+- **Adversarial Review**: Challenge assumptions, find gaps, stress-test plans
+- **Wave-Based Quality**: Parallel review from multiple perspectives
+- **No Silent Edits**: Report findings; user decides on fixes
+- **Single Source**: Read from `plans/$SCOPE/` - Obsidian sees via project root
 
 ---
 
-## Phase 2: Structural Verification
+## Input
+
+**Scope to Validate:** $ARGUMENTS
+
+Format: `/validate-roadmap $SCOPE`
+
+---
+
+## Phase 0: Scan & Route (MANDATORY FIRST)
+
+`[Mode: Scan]`
+
+1. **Parse Scope**: Extract `$SCOPE` from `$ARGUMENTS`
+2. **Verify Files Exist**:
+   - `plans/$SCOPE/roadmap.md`
+   - `plans/$SCOPE/idea_research.md`
+   - `plans/$SCOPE/coding_convention.md`
+   - `plans/$SCOPE/INSTRUCTIONS.md`
+
+3. **Classify Validation Type**:
+   | Type | Criteria |
+   |------|----------|
+   | **Quick** | Single phase, known scope |
+   | **Standard** | Full roadmap, standard review |
+   | **Deep** | Complex project, multiple domains |
+
+4. **User Constraints** (via `question` tool):
+   - Timeline: ASAP / Standard / Relaxed
+   - Team Size: Solo / Small / Large
+   - Focus: Speed / Scalability / Balanced
+   - Tech Confidence: Confident / Unsure / Need Validation
+
+5. **MANDATORY STOP**: Wait for answers before Wave 1
+
+---
+
+## Wave 1: Structural Validation (Parallel)
 
 `[Mode: Verify]`
 
-**Instruction**: Use the `task` tool to invoke `@critic`. Pass this prompt:
-"Read `plans/$SCOPE/roadmap.md` and verify **both sections**:
+**Parallel Execution**:
 
-### Section 1 — Roadmap (Phase/Day/Task timeline)
+### Format Validation — `@critic`
+```
+Read: plans/$SCOPE/roadmap.md
 
-1. VERIFY that the roadmap starts at `Phase 0`.
-2. VALIDATE that every Phase has at least two `**Day` entries (e.g., `**Day 1`, `**Day 2`). A single-Day Phase is unacceptable.
-3. VALIDATE that all tasks are written in **future tense** and represent atomic steps (15 minutes or less).
-4. VERIFY that no completed or past-tense language exists (e.g., 'already implemented', 'was configured').
+Verify:
+1. Roadmap starts at Phase 0 or Phase 1
+2. Each Phase has at least 2 Day entries (no single-Day phases)
+3. All tasks are future tense, atomic (15 min or less)
+4. No past-tense language ("already implemented", "was configured")
 
-### Section 2 — Implementation Plan
+Verify Implementation Plan:
+5. ## Implementation Plan section exists
+6. ### Key Files table populated with valid paths
+7. ### Risks and Mitigations table populated
+8. ### Security Checklist complete
+9. ### Accessibility Checklist complete
+10. ### Implementation Steps have risk ratings
 
-5. VERIFY that `## Implementation Plan` section exists.
-6. VALIDATE that `### Key Files` table is populated and references actual project paths.
-7. VALIDATE that `### Risks and Mitigations` table is populated.
-8. VALIDATE that `### Security Checklist` has all items present.
-9. VALIDATE that `### Accessibility Checklist` has all items present.
-10. VERIFY that `### Implementation Steps` include per-step risk ratings (Low/Medium/High)."
+Output: Formatting violations list with severity
+```
 
-Wait for `@critic` to finish.
+### Content Validation — `@qa-engineer`
+```
+Read: plans/$SCOPE/roadmap.md, plans/$SCOPE/idea_research.md
+
+Verify:
+1. Tasks map to goal in idea_research.md
+2. Dependencies are logically ordered
+3. No orphaned tasks (tasks with no predecessor in later phases)
+4. Phase deliverables are verifiable
+5. Implementation steps have clear ownership
+
+Output: Content gaps list
+```
+
+**Wait for BOTH responses**
 
 ---
 
-## Phase 3: Scope Review & Report
+## Wave 2: Adversarial Review (Parallel)
 
 `[Mode: Review]`
 
-**Instruction**: Use the `task` tool to invoke `@critic` again. Pass this prompt:
-"1. Cross-reference the Roadmap against `plans/$SCOPE/idea_research.md` (and `plans/$SCOPE/coding_convention.md` if necessary) along with the user's constraints gathered in Phase 1.
-2. Analyze the scope: Does the roadmap realistically match the constraints? Are we over-engineering? Are dependencies ordered correctly?
-3. Return a final Review Report highlighting:
-   - INVALID formatting violations
-   - Overly vague tasks
-   - Missing Implementation Plan sections
-   - Out-of-scope items
-   - Unrealistic timeline estimates"
+**Parallel Execution**:
 
-Present the returned report to the user in the chat. DO NOT silently edit `plans/$SCOPE/roadmap.md`. Let the user decide if they want to run `/inject` or `/bootstrap` again, or if they want you to fix it manually.
+### Feasibility Review — `@critic`
+```
+Analyze: plans/$SCOPE/roadmap.md against user constraints
+Context: Timeline, Team Size, Focus from Phase 0
+
+Challenge:
+- Are timeline estimates realistic?
+- Is scope creep happening?
+- Are dependencies ordered correctly?
+- Are there single points of failure?
+- What happens if key developer is unavailable?
+
+Output: Critical risk items with severity ratings
+```
+
+### Technical Review — `@architect`
+```
+Analyze: plans/$SCOPE/roadmap.md against plans/$SCOPE/coding_convention.md
+
+Challenge:
+- Does implementation approach match tech stack?
+- Are there architectural anti-patterns?
+- Is 3-tier architecture respected?
+- Are there performance risks?
+
+Output: Technical concerns list
+```
+
+**Wait for BOTH responses**
+
+---
+
+## Phase: Synthesis & Report
+
+`[Mode: Report]`
+
+**Orchestrator Tasks**:
+
+1. **Aggregate Findings** from all waves:
+   - Structural violations (Wave 1)
+   - Content gaps (Wave 1)
+   - Feasibility risks (Wave 2)
+   - Technical concerns (Wave 2)
+
+2. **Generate Validation Report**:
+   ```markdown
+   ## Validate Roadmap: [$SCOPE]
+   
+   ### Summary
+   - Validation Type: [Quick/Standard/Deep]
+   - Files Verified: [list]
+   
+   ### Structural Issues [CRITICAL/HIGH/MEDIUM]
+   | Issue | Location | Severity |
+   |-------|----------|----------|
+   
+   ### Content Gaps
+   | Gap | Impact | Recommendation |
+   |-----|--------|----------------|
+   
+   ### Risk Assessment
+   | Risk | Severity | Mitigation |
+   |------|----------|------------|
+   
+   ### Technical Concerns
+   | Concern | Resolution |
+   |----------|------------|
+   
+   ### Verdict
+   - [ ] APPROVE - Roadmap ready for execution
+   - [ ] CONDITIONAL - Fix critical issues before execution
+   - [ ] REJECT - Requires significant rework
+   ```
+
+3. **Present to User** - Do NOT silently edit. Let user decide:
+   - Run `/inject` to fix specific issues
+   - Run `/bootstrap` for complete rebuild
+   - Manual edits
+
+---
+
+## Completion Checklist
+
+- [ ] Structural validation complete
+- [ ] Content validation complete  
+- [ ] Adversarial review complete
+- [ ] Report presented to user
+
+**Output**:
+```
+## Validate Complete [$SCOPE]
+
+Validation Type: [Quick/Standard/Deep]
+Issues Found: [count by severity]
+Verdict: [APPROVE/CONDITIONAL/REJECT]
+```
 
 ---
 
 ## Usage
+
 ```bash
-/validate-roadmap core
-/validate-roadmap billing
+/validate-roadmap core        # Validate core roadmap
+/validate-roadmap billing    # Validate billing roadmap
+/validate-roadmap auth       # Validate auth roadmap
 ```
