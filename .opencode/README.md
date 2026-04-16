@@ -1,6 +1,6 @@
 # CheatScale OpenCode Configuration
 
-> **Foundation**: Built upon [everything-claude-code](https://github.com/affaan/everything-claude-code) by affaan
+> **Foundation**: Built upon [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by affaan
 > 
 > This project exists because of the excellent foundation provided by affaan. ~10% of patterns derived, 90% CheatScale additions.
 
