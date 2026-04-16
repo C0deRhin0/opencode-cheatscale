@@ -120,37 +120,73 @@ Output: Critical issues list with severity ratings
 
 `[Mode: Synthesis]`
 
-**Orchestrator Tasks**:
+**FRONTMATTER REQUIREMENT**: Every file MUST include frontmatter for Obsidian graph linking.
 
-1. **Read all Wave outputs** from task results
+**Template** (use for ALL files):
+```yaml
+---
+tags: [type, scope]
+scope: $SCOPE
+---
+```
 
-2. **Write `plans/$SCOPE/idea_research.md`**:
+**File Frontmatter Mapping**:
+| File | Tags |
+|------|------|
+| `idea_research.md` | `tags: [research, $SCOPE]` |
+| `coding_convention.md` | `tags: [convention, $SCOPE]` |
+| `INSTRUCTIONS.md` | `tags: [instructions, $SCOPE]` |
+| `roadmap.md` | `tags: [roadmap, $SCOPE]` |
+
+---
+
+### Write Files
+
+1. **Write `plans/$SCOPE/idea_research.md`**:
+   - Include frontmatter at top
+   - Link to other files: `See [[coding_convention]] and [[roadmap]]`
    ```markdown
+   ---
+   tags: [research, $SCOPE]
+   scope: $SCOPE
+   ---
+   
    ## Project Brief: $SCOPE
    
    ### Goal
-   <One sentence project objective>
+   <One sentence>
    
    ### Task
-   <Concrete deliverables>
+   <Deliverables>
    
    ### Constraints
    - Tech stack: <stack>
-   - Timeline: <phase targets>
+   - Timeline: <phases>
    - Non-goals: <out of scope>
    ```
 
-3. **Write `plans/$SCOPE/coding_convention.md`**:
+2. **Write `plans/$SCOPE/coding_convention.md`**:
+   - Include frontmatter at top
    - Tech-stack specific best practices
-   - Naming conventions, file structure
-   - Testing requirements (80%+)
+   - Naming conventions, file structure patterns
+   - Testing requirements (80%+ coverage)
+   - Link: `Related: [[idea_research]], [[roadmap]]`
 
-4. **Write `plans/$SCOPE/INSTRUCTIONS.md`**:
-   - Workspace boundaries
+3. **Write `plans/$SCOPE/INSTRUCTIONS.md`**:
+   - Include frontmatter at top
+   - Workspace boundaries: ``, `plans/$SCOPE/`, `codebase/`
    - Key project conventions
    - 3-Tier Architecture emphasis
+   - Link: `See [[roadmap]] for implementation`
 
-5. **Write `plans/$SCOPE/roadmap.md`** with:
+4. **Write `plans/$SCOPE/roadmap.md`**:
+   - Include frontmatter at top
+   - Link: `Based on [[idea_research]], [[coding_convention]], [[INSTRUCTIONS]]`
+   
+   **Structure**:
+   - Section A: Write Scopes table
+   - Section B: Roadmap (Phase > Day > Task)
+   - Section C: Implementation Plan
 
    **Section A — Write Scopes**:
    ```markdown
@@ -212,7 +248,11 @@ Waves Executed: [1/2/3]
 
 ## Obsidian Integration
 
-Configure Obsidian vault to project root (`./`). Obsidian automatically indexes all `plans/` subdirectories, showing all feature roadmaps.
+**Files now include frontmatter** for Obsidian graph linking:
+- Each file has `tags: [type, $SCOPE]` and `scope: $SCOPE`
+- Wiki-links connect files: `[[roadmap]], [[idea_research]], etc.`
+
+Configure Obsidian vault to project root (`./`) or `plans/`. All roadmaps visible in graph view.
 
 No dual-write needed - single source of truth in `plans/`.
 
