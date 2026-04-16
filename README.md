@@ -54,7 +54,7 @@ Creates complete project context with:
 - Tech-stack specific conventions
 - Full roadmap with phases, days, tasks
 
-**Usage**: `/bootstrap snake-game-c++`
+**Usage**: `/bootstrap billing add VAT handling`
 
 ### /inject - Surgical Roadmap Injection
 
@@ -72,7 +72,7 @@ Validates roadmap with parallel quality gates:
 - Wave 2: Feasibility + technical review (critic, architect)
 - Generates detailed validation report
 
-**Usage**: `/validate-roadmap snake`
+**Usage**: `/validate-roadmap billing`
 
 ---
 
@@ -166,7 +166,7 @@ Execute roadmap tasks with **atomic checkpointing**:
 - MANDATORY STOP after each phase
 - Auto-spawns relevant reviewers
 
-**Usage**: `/routine snake P1D1`
+**Usage**: `/routine billing P1D1`
 
 ### /commit - Atomic Commits
 
@@ -196,8 +196,8 @@ All roadmap files include frontmatter for Obsidian graph view:
 
 ```yaml
 ---
-tags: [roadmap, snake]
-scope: snake
+tags: [roadmap, billing]
+scope: billing
 ---
 ```
 
@@ -261,7 +261,7 @@ Every phase requires user confirmation before proceeding - prevents runaway exec
 
 ## Foundation Credit
 
-CheatScale is built upon **everything-claude-code** by [affaan](https://github.com/affaan).
+CheatScale is built upon **everything-claude-code** by [affaan](https://github.com/affaan-m/everything-claude-code).
 
 Approximately 10% of the foundational patterns, agent configurations, and command structures are derived from this excellent resource. The remaining 90% represents new enterprise patterns, wave-based orchestration, and custom commands.
 
