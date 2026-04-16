@@ -2,11 +2,17 @@
   "mcpServers": {
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ]
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@2.1.4"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@2.1.4"
+      ]
     },
     "exa": {
       "type": "http",
@@ -14,15 +20,34 @@
     },
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@0.0.68", "--extension"]
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.68",
+        "--extension"
+      ]
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "obsidian": {
+      "command": "obsidian-mcp",
+      "env": {
+        "OBSIDIAN_API_KEY": "YOUR_OBSIDIAN_KEY_HERE",
+        "OBSIDIAN_HOST": "127.0.0.1",
+        "OBSIDIAN_PORT": "27124",
+        "OBSIDIAN_VAULT_PATH": "YOUR_PATH_HERE"
+      }
     }
   }
 }
