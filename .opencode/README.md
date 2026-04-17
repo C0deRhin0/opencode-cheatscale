@@ -284,7 +284,7 @@ MIT
 
 ## Acknowledgments
 
-**Primary Foundation**: [everything-claude-code](https://github.com/affaan/everything-claude-code) by [affaan](https://github.com/affaan)
+**Primary Foundation**: [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by [affaan](https://github.com/affaan)
 
 This project was motivated and made possible by affaan's excellent open-source work. The foundation provided the inspiration and base patterns that CheatScale builds upon.
 
