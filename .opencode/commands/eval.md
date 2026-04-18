@@ -85,4 +85,11 @@ For non-deterministic evaluations:
 
 ---
 
+## Usage
+
+```bash
+/eval "login flow meets acceptance criteria"
+/eval "payment processing handles edge cases"
+```
+
 **TIP**: Use eval for acceptance testing before marking features complete.
