@@ -38,7 +38,7 @@ Plan-driven or ad-hoc execution using wave-based orchestration with dynamic agen
 `[Mode: Scan]`
 
 1. **Project Scan**: `ls -laF` to confirm structure
-2. **Read Context**: `plans/$SCOPE/roadmap.md`, `INSTRUCTIONS.md`, `coding_convention.md`
+2. **Read Context**: `plans/$SCOPE/feature.md`, `plans/$SCOPE/tasks/*.md`, `INSTRUCTIONS.md`, `coding_convention.md`
 3. **Task Analysis**: Determine domain requirements
 
 ### Dynamic Agent Router
@@ -98,7 +98,7 @@ Plan-driven or ad-hoc execution using wave-based orchestration with dynamic agen
 ### Phase 1: Context Boot
 
 1. Read `plans/$SCOPE/INSTRUCTIONS.md` and `coding_convention.md`
-2. Read `plans/$SCOPE/roadmap.md` (Roadmap + Implementation Plan)
+2. Read `plans/$SCOPE/feature.md` and `plans/$SCOPE/tasks/*.md`
 3. Confirm project root: `ls -laF`
 
 ### Phase 2: Complexity Classification

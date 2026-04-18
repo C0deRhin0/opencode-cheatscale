@@ -14,14 +14,14 @@ All git operations scoped to `codebase/`. No source code modifications.
 
 - **Code Freeze**: You are strictly prohibited from modifying application source code during this command. This is a git-management-only task.
 - **Scope Boundary**: All git operations MUST be scoped to `codebase/`. Do not run git commands from the project root.
-- **Naming Convention**: You are strictly forbidden from using the `[$SCOPE:PnDm]` suffix in the commit message. This suffix is reserved for `/routine` ONLY.
+- **Naming Convention**: Use suffix `[$SCOPE#task-id]` for commits (NEW). The old format `[$SCOPE:PnDm]` is deprecated but still works.
 
 ## GLOBAL OUTPUT RULE: NO EMOJIS
 You are STRICTLY FORBIDDEN from using emojis in any generated output. All text must be plain professional text.
 
 ## Boot Sequence (MANDATORY)
 
-1. Read `plans/$SCOPE/roadmap.md` to identify the current active phase
+1. Read `plans/$SCOPE/feature.md` and relevant task file in `plans/$SCOPE/tasks/`
 2. Confirm project root with `ls -laF`
 
 ---
@@ -38,7 +38,7 @@ You are STRICTLY FORBIDDEN from using emojis in any generated output. All text m
    <type>(<scope>): <concise description of changes>
    ```
    - Where `type` is one of: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`.
-   - Reference the current active phase from `plans/$SCOPE/roadmap.md` in the scope when applicable.
+   - Reference the current task from `plans/$SCOPE/tasks/` in the commit tag.
    - The `<type>` AND/OR `<description>` MUST NOT contain any phase prefixes like `[Phase N Day M]` or `[PnDm]`. 
 4. Run `git commit -m "<message>"`.
 5. **Do NOT run `git push`**. The code must remain local for the drip-feeder queue.
