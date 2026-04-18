@@ -86,4 +86,11 @@ Analyze the specified code for security vulnerabilities following OWASP guidelin
 
 ---
 
+## Usage
+
+```bash
+/security                       # Review all changed files
+/security src/auth/             # Review specific directory
+```
+
 **IMPORTANT**: Security issues are blockers. Do not proceed until critical issues are resolved.

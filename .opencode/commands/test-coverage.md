@@ -77,4 +77,11 @@ describe('functionName', () => {
 
 ---
 
+## Usage
+
+```bash
+/test-coverage                      # Analyze full project
+/test-coverage src/services/        # Specific directory
+```
+
 **IMPORTANT**: Coverage is a metric, not a goal. Focus on meaningful tests, not just hitting numbers.
