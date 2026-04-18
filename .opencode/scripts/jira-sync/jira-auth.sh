@@ -29,24 +29,14 @@ jira_api_call() {
     local method="$1"
     local endpoint="$2"
     local data="$3"
-    
-    local curl_opts=(
-        -s
-        -X "$method"
-        -u "$JIRA_EMAIL:$JIRA_API_TOKEN"
-        -H "Content-Type: application/json"
-        --max-time "${JIRA_TIMEOUT:-30}"
-    )
-    
-    if [ "$JIRA_VERIFY_SSL" != "true" ]; then
-        curl_opts+=(-k)
-    fi
-    
-    if [ -n "$data" ]; then
-        curl_opts+=(-d "$data")
-    fi
-    
-    curl "${curl_opts[@]}" "$JIRA_BASE_URL$endpoint"
+
+    curl -s -X "$method" \
+        -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        --max-time "${JIRA_TIMEOUT:-30}" \
+        ${JIRA_VERIFY_SSL:+-k} \
+        ${data:+-d "$data"} \
+        "$JIRA_BASE_URL$endpoint"
 }
 
 # Test connection
