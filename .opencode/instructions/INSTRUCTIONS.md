@@ -11,9 +11,9 @@ This environment is structured into three distinct layers to ensure maximum port
     - **Content**: Standard coding patterns, security rules, specialized agent definitions, and global commands.
     - **Portability**: This folder should be copied as-is to any new project.
 
-2.  **The Context Layer (`plan/`)**:
+2.  **The Context Layer (`plans/`)**:
     - **Purpose**: Project-specific domain knowledge.
-    - **Content**: The `INSTRUCTIONS.md`, `roadmap.md`, `coding_convention.md`, and `idea_research.md`
+    - **Content**: The `INSTRUCTIONS.md`, `feature.md`, `tasks/*.md`, `coding_convention.md`, and `idea_research.md`
     - **Portability**: This folder is unique to every project and provides the AI with its "Mission."
 
 3.  **The Implementation Layer (`codebase/`)**:
@@ -27,13 +27,13 @@ To prevent situational amnesia and directory navigation errors, all agents MUST 
 1.  **Universal Grounding**: Confirm you are in the workspace root (`ls -laF`).
 2.  **Git Scoping**: Verify you are NOT running Git commands in the workspace root. All Git operations MUST change directory to `codebase/` first.
 3.  **Intelligence Sync**: Read `.opencode/instructions/INSTRUCTIONS.md` and the Constitution files (`<root_folder>/.opencode/AGENTS.md` and `<root_folder>/.opencode/RULES.md`) to load global behaviors.
-4.  **Context Sync**: Traverse all files in `plan/` (especially `roadmap.md` and `INSTRUCTIONS.md`). If `code_convention.md` and `idea_research.md` are missing, proceed regardless
+4.  **Context Sync**: Traverse all files in `plans/` (especially `feature.md`, `tasks/*.md`, and `INSTRUCTIONS.md`). If `coding_convention.md` and `idea_research.md` are missing, proceed regardless
 5.  **Strategic Verification**: Confirm that the current task aligns with the project's active Phase.
 6.  **Progress Check**: Run `git log origin/main..main --oneline` inside `codebase/` to see the current unpushed "Drip" queue.
 
 ### Priority & Adaptability
-- **Hierarchy**: If a command or project requirement in `plan/` conflicts with a general guideline, the **user-specific instruction takes precedence**.
-- **Self-Detection**: Your first task in any new project is to verify if `./plan/` exists. If it does, automatically incorporate its context into your reasoning via the Boot Sequence.
+- **Hierarchy**: If a command or project requirement in `plans/` conflicts with a general guideline, the **user-specific instruction takes precedence**.
+- **Self-Detection**: Your first task in any new project is to verify if `./plans/` exists. If it does, automatically incorporate its context into your reasoning via the Boot Sequence.
 
 ---
 
@@ -397,7 +397,7 @@ Your Agentic OS framework provides a library of **37+ registered commands** (wit
 ### Project Root Protocol
 - **Primary Workspace**: `/codebase/`
 - **Context Access**: All agents must reference `../plans/$SCOPE/` for situational awareness while working inside `codebase/`.
-- **Command Scope**: Commands like `/routine` or `/plan` should default their context-gathering to the `/plans/[scope]/` roadmap but execute their output inside `codebase/`. If no scope is provided, default to `/plans/core/`.
+- **Command Scope**: Commands like `/routine` or `/plan` should default their context-gathering to the `/plans/[scope]/` feature and task files but execute their output inside `codebase/`. If no scope is provided, default to `/plans/core/`.
 
 ---
 
