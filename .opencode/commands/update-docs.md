@@ -64,4 +64,11 @@ Update documentation to reflect recent changes: $ARGUMENTS
 
 ---
 
+## Usage
+
+```bash
+/update-docs                        # Sync docs with recent changes
+/update-docs "add API endpoint docs"
+```
+
 **IMPORTANT**: Documentation should be updated alongside code changes, not as an afterthought.
