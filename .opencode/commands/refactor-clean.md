@@ -99,4 +99,11 @@ Remaining (manual review needed):
 
 ---
 
+## Usage
+
+```bash
+/refactor-clean                     # Analyze entire codebase
+/refactor-clean src/utils/          # Specific directory
+```
+
 **CAUTION**: Always verify before removing. When in doubt, ask or add `// TODO: verify usage` comment.

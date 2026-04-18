@@ -21,7 +21,7 @@ You are STRICTLY FORBIDDEN from using emojis in any generated output. All text m
 
 ## Boot Sequence (MANDATORY)
 
-1. Read `plans/$SCOPE/INSTRUCTIONS.md` and `plans/$SCOPE/roadmap.md`
+1. Read `plans/$SCOPE/INSTRUCTIONS.md` and `plans/$SCOPE/feature.md`
 2. Confirm project root with `ls -laF`
 
 ---
@@ -31,8 +31,9 @@ You are STRICTLY FORBIDDEN from using emojis in any generated output. All text m
 `[Mode: Drip-Feed]`
 
 1. Identify target commits from `codebase/`:
-   - **No argument**: Identify the oldest single unpushed commit: `git log origin/main..main --oneline --reverse -1`. Push exactly ONE.
-   - **Phase/Day argument** (e.g., `core P1D1` or `auth P0`): Translate to namespaced grep: `grep="\[$SCOPE:PnDm\]$"` or `grep="\[$SCOPE:.*\]$"`. Identify ALL unpushed commits matching that tag: `git log origin/main..main --oneline --reverse --grep="\[$SCOPE:PnDm\]$"`.
+    - **No argument**: Identify the oldest single unpushed commit: `git log origin/main..main --oneline --reverse -1`. Push exactly ONE.
+    - **Task argument** (e.g., `auth login-flow`): Translate to namespaced grep: `grep="\[$SCOPE#task-id\]$"`. Identify ALL unpushed commits matching that tag: `git log origin/main..main --oneline --reverse --grep="\[$SCOPE#task-id\]$"`.
+    - **Legacy PnDm** (e.g., `core P1D1`): Use grep pattern `grep="\[$SCOPE:PnDm\]$"` (deprecated, backward compatible).
 2. For each identified commit `[HASH]`:
    - Create temp branch from remote: `git checkout -b temp-drip-sync origin/main`
    - Cherry-pick: `git cherry-pick [HASH]`
@@ -49,12 +50,12 @@ You are STRICTLY FORBIDDEN from using emojis in any generated output. All text m
 
 **Instruction**: Use the `task` tool to invoke `@doc-updater`. Pass this prompt:
 "1. Read the last 24h of git logs and the current roadmap state.
-2. Generate a progress report for the PnDm being processed.
+2. Generate a progress report for the task being processed.
 3. APPEND the report to git_report.md in the project root (the folder containing .opencode/, codebase/, and plans/).
 4. Do NOT read the entire file. Append only.
 5. Format:
 
-## [$SCOPE:PnDm] - $(date +%Y-%m-%d)
+## [$SCOPE#task-id] - $(date +%Y-%m-%d)
 
 ### Accomplishments
 - [List each commit as a bullet point]
@@ -74,6 +75,9 @@ Report the drip-feed result and the remaining unpushed queue to the user.
 
 ## Usage
 ```bash
-/daily-sync core P1D1
-/daily-sync billing
+/push auth login-flow         # Push commits for task: login-flow (NEW)
+/push core P1D1           # Push commits for Phase 1 Day 1 (OLD, deprecated)
+/push billing             # Push oldest commit
 ```
+
+**Note**: Uses `[scope#task-id]` tag format (1:1 JIRA mapping)

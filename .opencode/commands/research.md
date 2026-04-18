@@ -112,3 +112,12 @@ Present to user using this structure:
 ```
 
 WAIT for user review.
+
+---
+
+## Usage
+
+```bash
+/research "best auth patterns for Next.js 2026"
+/research "compare Drizzle vs Prisma for edge deployments"
+```

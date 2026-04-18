@@ -32,7 +32,7 @@ Format: `/inject $SCOPE <requirements>`
 
 1. **Parse Scope**: Extract `$SCOPE` from `$ARGUMENTS` (first word)
 2. **Read Existing Context**:
-   - `plans/$SCOPE/roadmap.md` - current roadmap
+   - `plans/$SCOPE/feature.md` - Feature overview
    - `plans/$SCOPE/idea_research.md` - project brief
    - `plans/$SCOPE/coding_convention.md` - conventions
 
@@ -109,26 +109,21 @@ Output: UI component impact assessment
    - Append new conventions only if paradigm shift
    - Do NOT rewrite existing rules
 
-4. **Update `plans/$SCOPE/roadmap.md`**:
-   
-   **Surgical Rules**:
-   - DO NOT modify completed phases
-   - DO NOT rewrite existing days
-   - ADD new tasks to existing days if supplementing current phase
-   - ADD new phase at bottom if completely new feature
-   - Preserve `## Implementation Plan` section, append to tables if needed
+4. **Update `plans/$SCOPE/feature.md`**:
 
-   ```markdown
-   <!-- Add to appropriate location -->
-   
-   ### Phase N+1 — [New Feature]
-   
-   **Day 1**
-   - [ ] New task 1
-   - [ ] New task 2
-   
-   **Deliverable:** <what this achieves>
-   ```
+    **Surgical Rules**:
+    - DO NOT modify completed tasks
+    - ADD new subtasks to existing tasks if supplementing
+    - ADD new task at bottom if completely new
+    - Preserve feature structure
+
+    ```markdown
+    <!-- Add to tasks/ directory -->
+
+    ### Task: {NEW_TASK}
+    - [ ] Subtask: {SUBTASK_NAME}
+    - [ ] Subtask: {SUBTASK_NAME}
+    ```
 
 ---
 
@@ -136,7 +131,8 @@ Output: UI component impact assessment
 
 - [ ] `plans/$SCOPE/idea_research.md` — reconciled (or confirmed unchanged)
 - [ ] `plans/$SCOPE/coding_convention.md` — updated (or confirmed unchanged)
-- [ ] `plans/$SCOPE/roadmap.md` — surgically updated, no data loss
+- [ ] `plans/$SCOPE/feature.md` — Feature overview (updated)
+- [ ] `plans/$SCOPE/tasks/*.md` — Task files (created as needed)
 
 **Output**:
 ```
