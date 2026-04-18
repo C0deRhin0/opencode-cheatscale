@@ -256,9 +256,9 @@ Additional available:
 After completing multiple tasks in one session:
 
 ```bash
-/routine myfeature P1D1
-/routine myfeature P1D2
-/routine myfeature P1D3
+/routine myfeature setup-api
+/routine myfeature build-ui
+/routine myfeature write-tests
 ```
 
 All tasks completed in one day. Now push with time-warp:
