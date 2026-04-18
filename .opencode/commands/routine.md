@@ -1,5 +1,5 @@
 ---
-description: Execute a roadmapped Phase or Day with atomic task checkpointing — implement, audit, commit per task
+description: Execute a roadmapped Feature Task with atomic task checkpointing — implement, audit, commit per task
 agent: orchestrator
 ---
 
@@ -41,7 +41,7 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 `[Mode: Scan]`
 
 1. **Project Scan**: `ls -laF` to confirm structure
-2. **Read Context**: `plans/$SCOPE/roadmap.md`, `INSTRUCTIONS.md`, `coding_convention.md`
+2. **Read Context**: `plans/$SCOPE/feature.md`, `plans/$SCOPE/tasks/*.md`, `INSTRUCTIONS.md`, `coding_convention.md`
 3. **Task Analysis**: Parse tasks from roadmap, determine domain requirements
 
 ### Dynamic Agent Router
@@ -108,7 +108,7 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 
 `[Mode: Sync]`
 
-1. Parse `$ARGUMENTS` - format: `[SCOPE] [PHASE/DAY]` (e.g., `core P1D1`)
+1. Parse `$ARGUMENTS` - format: `[SCOPE] [TASK]` (e.g., `auth login-flow` or `core P1D1` for backward compatibility)
 2. Read roadmap, instructions, conventions
 3. Extract atomic tasks (15 min max each)
 
@@ -147,7 +147,7 @@ Invoke @database-engineer + @database-reviewer in parallel
 
 **Task Prompt Template**:
 ```
-1. Execute: [Task Name] from plans/$SCOPE/roadmap.md
+1. Execute: [Task Name] from plans/$SCOPE/tasks/*.md
 2. Implementation Root: All files in codebase/ within your domain scope
 3. Follow: plans/$SCOPE/coding_convention.md
 4. Verify: Run tests/linter, fix regressions
@@ -162,7 +162,7 @@ Reviewer agents validate. If FAIL, dispatch back to writer for fixes.
 #### Step C — Atomic Checkpoint
 
 1. Git add + commit within `codebase/`
-2. Format: `<type>: <description> [$SCOPE:PnDm]`
+2. Format: `<type>: <description> [$SCOPE#task-id]` (NEW) or `[$SCOPE:PnDm]` (OLD, deprecated)
 3. Do NOT push - commits stay local
 
 **Repeat for every task**
@@ -183,7 +183,7 @@ After all tasks complete, **parallel audit**:
 ## Output Format
 
 ```
-## Routine Complete [$SCOPE:PHASE/DAY]
+## Routine Complete [$SCOPE#task-id]
 
 Tasks Completed: [n]
 Commits: [n]
@@ -196,10 +196,13 @@ Issues Resolved: [count]
 ## Usage
 
 ```bash
-/routine core P1D1           # Execute Day 1 of Phase 1
-/routine billing Phase2     # Execute entire Phase 2
-/routine auth P3D2 task-3  # Specific task only
+/routine auth login-flow           # Execute task: login-flow (NEW)
+/routine core P1D1              # Execute Phase 1 Day 1 (OLD, deprecated)
+/routine billing user-profile     # Execute entire task
+/routine auth P3D2 task-3       # Specific task only (OLD format)
 ```
+
+**Note**: Uses Feature > Task > Subtask structure (1:1 JIRA mapping)
 
 ---
 
