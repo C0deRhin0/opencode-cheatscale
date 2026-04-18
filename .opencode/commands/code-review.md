@@ -65,4 +65,11 @@ Fix: [How to fix]
 
 ---
 
+## Usage
+
+```bash
+/code-review                    # Review all uncommitted changes
+/code-review src/auth/          # Review specific directory
+```
+
 **IMPORTANT**: Never approve code with security vulnerabilities!

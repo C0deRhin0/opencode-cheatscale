@@ -48,7 +48,12 @@ git diff --stat [last-checkpoint-commit]
 1. Step 1
 2. Step 2
 
-## Usage with Verification Loop
+## Usage
+
+```bash
+/checkpoint                         # Checkpoint current state
+/checkpoint "after auth migration"  # Named checkpoint
+```
 
 Checkpoints integrate with the verification loop:
 
