@@ -5,7 +5,8 @@ agent: planner
 
 # SitRep (Situational Report): $ARGUMENTS
 
-Fast, lightweight command to gather the current state of executed tasks, unpushed commits, and the upcoming roadmap phase.
+Fast, lightweight command to gather the current state of executed tasks, unpushed commits, and the upcoming roadmap task.
+This is your **primary reference** when returning to a session or when confused/lost.
 
 ---
 
@@ -19,7 +20,8 @@ Fast, lightweight command to gather the current state of executed tasks, unpushe
 
 ## Phase 1: Environment Scan
 
-1. List all active roadmaps: `ls -d plans/*/`
+1. List all active features: `ls -d plans/*/`
+2. Check each feature for task files: `ls -la plans/*/tasks/ 2>/dev/null`
 3. Check Git State in `codebase/`:
    - `git status`
    - `git -C codebase log -n 5 --oneline` (last 5 total commits)
@@ -31,17 +33,24 @@ Fast, lightweight command to gather the current state of executed tasks, unpushe
 
 `[Mode: Display]`
 
-Strictly output the situational report in a technical, zero-fluff format. Do NOT generate long prose. Use bullet points and focus solely on exact status, matching Phase/Day numbers.
-Include the following sections exactly:
+Output the situational report in a technical, zero-fluff format. Focus on what was done and what's next.
 
-**1. Latest Pushes** 
-- Extract 1-2 bullet points from `git_report.md` summarizing what was just done.
+**1. Latest Pushes**
+- Extract recent commits from `git_report.md` (last 10 lines)
+- Format: `[scope#task-id] description`
 
 **2. Current Queue**
-- Show the exact output of unpushed local commits. Advise the user to run `/push [$SCOPE:PnDm]` if the queue is not empty.
+- Show unpushed commits: `git log origin/main..main --oneline`
+- **Command to push**: `/push <scope> <task-id>`
+  - Example: `/push auth login-flow` (NEW format)
+  - Example: `/push core P1D1` (OLD, deprecated but works)
 
-**3. Next Up: [Phase N Day M]**
-- The exact Phase N Day M and the list of its tasks extracted from `plans/$SCOPE/roadmap.md`. Advise the user to run `/routine [$SCOPE:PnDm]` to execute.
+**3. Next Up**
+- Scan `plans/*/feature.md` for incomplete tasks
+- Identify next task with pending subtasks: `grep -l "^\- \[ \]" plans/*/tasks/*.md`
+- **Command to execute**: `/routine <scope> <task-id>`
+  - Example: `/routine auth login-flow` (NEW format)
+  - Example: `/routine core P1D1` (OLD, deprecated but works)
 
 ---
 
@@ -50,20 +59,66 @@ Include the following sections exactly:
 ```markdown
 ## SITREP - $(date)
 
-### Active Roadmaps
-| Scope | Phase | Status | Unpushed |
-|-------|-------|--------|----------|
-| core  | P1D2  | [==---] | 3 commits |
-| auth  | P0D1  | [-----] | 0 commits |
+### Active Features
+| Feature | Tasks | Progress | Next Task | Unpushed |
+|---------|-------|----------|----------|----------|
+| auth    | login-flow, password-reset | 2/5 subtasks | login-flow: build-ui | 3 |
+| billing | invoice, report | 0/3 subtasks | invoice: setup-api | 0 |
 
-### Codebase Health
-- Branch: main (origin/main)
-- Local status: <N> commits ahead
-- Uncommitted changes: <Yes/No>
+### Current Task Focus
+**Next**: auth > login-flow
+- Subtasks pending: build-ui, create-api, tests
 
-### Recent Activity
-- <Last 5 commits across all scopes>
+### Command Suggestions
+To continue where you left off:
+  /routine auth login-flow      # Execute next task (RECOMMENDED)
+  /routine auth P1D1           # Execute task (OLD format, works)
+
+To push completed work:
+  /push auth login-flow        # Push commits (RECOMMENDED)
+  /push auth P1D1           # Push commits (OLD format, works)
+
+To check detailed status:
+  /sitrep auth               # SitRep for specific scope
+
+### Git Status
+$(git -C codebase log origin/main..main --oneline | head -5 || echo "Nothing to push")
+
+### Recent Commits (Last 5)
+$(git -C codebase log -n 5 --oneline)
 ```
+
+---
+
+## Command Reference (For User Clarity)
+
+This command is your **anchor** when you're confused. Use it to find:
+
+| Confusion | Solution |
+|-----------|-----------|
+| "Where was I?" | Check "Current Task Focus" section |
+| "What do I run next?" | Run `/routine <scope> <task>` from "Next Task" |
+| "Did I push everything?" | Check "Unpushed" column |
+| "What's left?" | Check "Progress" column |
+
+**Syntax Reference**:
+```
+/routine <feature-name>             # NEW - e.g., /routine auth login-flow
+/routine <scope> PnDm            # OLD (deprecated) - e.g., /routine auth P1D1
+/push <feature-name>               # NEW - e.g., /push auth login-flow
+/push <scope> PnDm              # OLD (deprecated) - e.g., /push auth P1D1
+```
+
+---
 
 ## GLOBAL OUTPUT RULE: NO EMOJIS
 You are STRICTLY FORBIDDEN from using emojis in any generated output. All text must be plain professional text.
+
+---
+
+## Usage
+
+```bash
+/sitrep                     # Full workspace status
+/sitrep auth                # Status for specific scope
+```

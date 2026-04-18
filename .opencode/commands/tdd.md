@@ -63,4 +63,11 @@ RED  GREEN  REFACTOR  REPEAT
 
 ---
 
+## Usage
+
+```bash
+/tdd "create user registration endpoint"
+/tdd "add password reset flow"
+```
+
 **MANDATORY**: Tests must be written BEFORE implementation. Never skip the RED phase.
