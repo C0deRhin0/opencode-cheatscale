@@ -327,6 +327,19 @@
         "edit": false,
         "question": true
       }
+    },
+    "synthesis-writer": {
+      "description": "Synthesis writer for bootstrap roadmap generation. Writes planning artifacts in parallel during the Synthesis phase.",
+      "mode": "subagent",
+      "model": "opencode/minimax-m2.5-free",
+      "prompt": "{file:agents/synthesis-writer.md}",
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": false,
+        "question": true
+      }
     }
   },
   "command": {
@@ -429,6 +442,16 @@
       "description": "Verify, validate, review, and scope the current roadmap implementation",
       "template": "{file:commands/validate-roadmap.md}\n\n$ARGUMENTS",
       "agent": "critic"
+    },
+    "jira-push": {
+      "description": "Create JIRA Epic > Task > Subtask hierarchy from bootstrap roadmap",
+      "template": "{file:commands/jira-push.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
+    },
+    "jira-delete": {
+      "description": "Delete JIRA epic, tasks, and subtasks from a roadmap feature",
+      "template": "{file:commands/jira-delete.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
     }
   },
   "permission": {
