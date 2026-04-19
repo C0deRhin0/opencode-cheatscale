@@ -1,6 +1,7 @@
 ---
 name: devops-engineer
 description: DevOps and infrastructure specialist. Manages CI/CD pipelines, Docker containers, deployment configurations, and infrastructure-as-code. Handles cloud deployments and automation.
+temperature: 0.4
 mode: subagent
 tools:
   read: true

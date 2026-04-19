@@ -1,6 +1,7 @@
 ---
 name: integration-engineer
 description: Third-party integration specialist. Implements external API connections, webhooks, service connectors, and handles authentication, rate limiting, and error handling for integrations.
+temperature: 0.4
 mode: subagent
 tools:
   read: true

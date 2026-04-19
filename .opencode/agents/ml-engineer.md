@@ -1,6 +1,7 @@
 ---
 name: ml-engineer
 description: Machine learning engineer for model integration, embeddings, inference pipelines, and AI-powered features. Handles LLM APIs, vector databases, and ML model deployment.
+temperature: 0.6
 mode: subagent
 tools:
   read: true

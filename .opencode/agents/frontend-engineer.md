@@ -1,6 +1,7 @@
 ---
 name: frontend-engineer
 description: Frontend implementation specialist. Writes UI components, layouts, pages, and ensures design system compliance. Works with design tokens, responsive layouts, and client-side state management.
+temperature: 0.4
 mode: subagent
 tools:
   read: true
