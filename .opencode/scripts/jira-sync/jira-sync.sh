@@ -103,8 +103,8 @@ SCOPE_EOF
 
     log_success "Scope hub created: $OUTPUT_DIR/$scope_name/$scope_name.md"
 
-    # Generate feature.md
-    cat > "$OUTPUT_DIR/$scope_name/feature.md" << ROADMAP_EOF
+    # Generate $SCOPE.md
+    cat > "$OUTPUT_DIR/$scope_name/$SCOPE.md" << ROADMAP_EOF
 ---
 scope: $scope_name
 feature: $scope_name
@@ -147,7 +147,7 @@ done)
 *Feature > Task > Subtask structure (1:1 JIRA mapping)*
 ROADMAP_EOF
 
-    log_success "Feature created: $OUTPUT_DIR/$scope_name/feature.md"
+    log_success "Feature created: $OUTPUT_DIR/$scope_name/$SCOPE.md"
 
     # Create tasks directory
     mkdir -p "$OUTPUT_DIR/$scope_name/tasks"
@@ -211,7 +211,7 @@ do_issues_detailed() {
 # Push feature status to JIRA
 sync_push() {
     local scope_name="${1:-core}"
-    local feature_file="$OUTPUT_DIR/$scope_name/feature.md"
+    local feature_file="$OUTPUT_DIR/$scope_name/$SCOPE.md"
     local tasks_dir="$OUTPUT_DIR/$scope_name/tasks"
 
     if [ ! -f "$feature_file" ]; then
@@ -224,11 +224,11 @@ sync_push() {
     local jira_epic=$(grep -o 'jira_epic: [A-Z]*-[0-9]*' "$feature_file" | cut -d' ' -f2)
 
     if [ -z "$jira_epic" ]; then
-        log_error "No JIRA epic found in feature.md frontmatter"
+        log_error "No JIRA epic found in $SCOPE.md frontmatter"
         exit 1
     fi
 
-    # Count progress across feature.md and tasks/*.md
+    # Count progress across $SCOPE.md and tasks/*.md
     local completed=0
     local total=0
     for f in "$feature_file" "$tasks_dir"/*.md 2>/dev/null; do

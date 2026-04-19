@@ -31,7 +31,7 @@ cd .opencode/scripts/jira-sync
 Creates:
 ```
 plans/my-feature/
-├── feature.md          # Feature overview (JIRA Epic = Feature)
+├── $SCOPE.md          # Feature overview (JIRA Epic = Feature)
 └── tasks/
     ├── proj-124.md     # Task file (JIRA Task = Task)
     └── proj-125.md     # Each contains subtask checkboxes
@@ -97,7 +97,7 @@ jira_key: PROJ-124
 ## Obsidian Integration
 
 All generated files include frontmatter for Obsidian graph linking:
-- `feature.md` has `tags: [feature, $SCOPE]`
+- `$SCOPE.md` has `tags: [feature, $SCOPE]`
 - `tasks/*.md` has `tags: [task, $SCOPE]` and `parent: "[[feature]]"`
 
 Configure Obsidian vault to project root or `plans/` to see all files in graph view.
@@ -134,5 +134,5 @@ JIRA_SPRINT_FIELD="customfield_10003"
 | `401 Unauthorized` | Check API token is valid |
 | `403 Forbidden` | Check email has JIRA access |
 | `ETIMEDOUT` | Check JIRA_DOMAIN is correct |
-| `No JIRA epic found` | Add `jira_epic: PROJ-123` to feature.md frontmatter |
+| `No JIRA epic found` | Add `jira_epic: PROJ-123` to $SCOPE.md frontmatter |
 | `Feature file not found` | Run `/bootstrap` or `./jira-sync.sh pull` first |

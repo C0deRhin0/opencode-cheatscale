@@ -95,8 +95,8 @@ $epic_summary
 EOF
     echo "Scope hub created: $OUTPUT_DIR/$scope_name/$scope_name.md"
 
-    # Generate feature.md
-    cat > "$OUTPUT_DIR/$scope_name/feature.md" << EOF
+    # Generate $SCOPE.md
+    cat > "$OUTPUT_DIR/$scope_name/$SCOPE.md" << EOF
 ---
 scope: $scope_name
 feature: $scope_name
@@ -139,7 +139,7 @@ done)
 *Feature > Task > Subtask structure (1:1 JIRA mapping)*
 EOF
 
-    echo "Feature created: $OUTPUT_DIR/$scope_name/feature.md"
+    echo "Feature created: $OUTPUT_DIR/$scope_name/$SCOPE.md"
 
     # Generate individual task files with frontmatter
     echo "$children" | grep -o '"key":"[A-Z]*-[0-9]*"' | sed 's/"key":"//;s/"$//' | while read task_key; do

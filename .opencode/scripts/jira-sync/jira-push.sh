@@ -1,114 +1,229 @@
 #!/bin/bash
-# JIRA Push Script - Update JIRA status from Feature > Task > Subtask structure
-# Usage: ./jira-push.sh [push|sync] [scope]
+# JIRA Push Script - Create Epic > Task > Subtask hierarchy from bootstrap roadmap
+# Usage: ./jira-push.sh create [scope]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/jira-auth.sh"
 
 OUTPUT_DIR="${OUTPUT_DIR:-plans}"
 
-# Read feature + tasks and update JIRA
-push_to_jira() {
-    local scope="${1:-core}"
-    local feature_file="$OUTPUT_DIR/$scope/feature.md"
+# Helper: Create ADF description
+create_adf_desc() {
+    local text="$1"
+    echo "{\"type\": \"doc\", \"version\": 1, \"content\": [{\"type\": \"paragraph\", \"content\": [{\"type\": \"text\", \"text\": \"$text\"}]}]}"
+}
+
+# Extract checkbox name (everything after "- [ ] ")
+extract_checkbox_name() {
+    echo "$1" | sed 's/^- \[ \] //'
+}
+
+# Create Epic > Task > Subtask hierarchy
+create_jira_hierarchy() {
+    local scope="${1:-}"
+    local feature_file="$OUTPUT_DIR/$scope/$scope.md"
     local tasks_dir="$OUTPUT_DIR/$scope/tasks"
+
+    if [ -z "$scope" ]; then
+        echo "ERROR: Scope required. Usage: $0 create <scope>"
+        exit 1
+    fi
 
     if [ ! -f "$feature_file" ]; then
         echo "ERROR: Feature file not found: $feature_file"
         exit 1
     fi
 
-    echo "=== Pushing Feature Status to JIRA: $scope ==="
+    # Determine JIRA project
+    local jira_project=$(grep -o 'jira_project: [A-Z]*' "$feature_file" | cut -d' ' -f2)
+    jira_project="${jira_project:-$JIRA_PROJECT_KEY}"
 
-    # Extract JIRA epic from frontmatter
-    local jira_epic=$(grep -o 'jira_epic: [A-Z]*-[0-9]*' "$feature_file" | cut -d' ' -f2)
-
-    if [ -z "$jira_epic" ]; then
-        echo "WARNING: No JIRA epic found in feature.md frontmatter"
-        echo "Add 'jira_epic: PROJ-123' to feature.md frontmatter"
-        return 1
+    if [ -z "$jira_project" ]; then
+        echo "ERROR: No jira_project found in $scope.md frontmatter"
+        exit 1
     fi
 
-    echo "Target Epic: $jira_epic"
+    echo "=== Creating JIRA Hierarchy: $scope ==="
+    echo "Project: $jira_project"
 
-    # Count progress across feature.md and tasks/*.md
-    local completed=0
-    local total=0
-    for f in "$feature_file" "$tasks_dir"/*.md 2>/dev/null; do
-        [ -f "$f" ] || continue
-        completed=$((completed + $(grep -c "\- \[x\]" "$f" 2>/dev/null || echo "0")))
-        total=$((total + $(grep -c "\- \[ \]" "$f" 2>/dev/null || echo "0")))
+    # Extract feature name from title line
+    local feature_name=$(grep -m1 "^# " "$feature_file" | sed 's/^# //' | head -c 100)
+    if [ -z "$feature_name" ]; then
+        feature_name="$scope"
+    fi
+
+    # Check if Epic already exists
+    local existing_epic=$(grep -o 'jira_epic: [A-Z]*-[0-9]*' "$feature_file" | cut -d' ' -f2)
+
+    if [ -n "$existing_epic" ]; then
+        echo "Using existing Epic: $existing_epic"
+        local epic_key="$existing_epic"
+    else
+        echo "Creating Epic: $feature_name..."
+        local epic_desc=$(create_adf_desc "Created from bootstrap roadmap. See: plans/$scope/")
+        local epic_response=$(jira_api_call POST '/issue' "{
+            \"fields\": {
+                \"project\": { \"key\": \"$jira_project\" },
+                \"summary\": \"$feature_name\",
+                \"description\": $epic_desc,
+                \"issuetype\": { \"id\": \"10005\" }
+            }
+        }")
+
+        if echo "$epic_response" | grep -q '"key"'; then
+            local epic_key=$(echo "$epic_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
+            echo "Created Epic: $epic_key"
+
+            # Update feature file with jira_epic
+            sed -i '' "s/^---\$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file" 2>/dev/null || \
+            sed -i "0,/^---$/s/^---$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file"
+        else
+            echo "ERROR: Failed to create Epic"
+            echo "$epic_response"
+            exit 1
+        fi
+    fi
+
+    echo ""
+    echo "Creating Tasks under $epic_key..."
+
+    # Process each task file
+    local task_count=0
+    for task_file in "$tasks_dir"/*.md; do
+        [ -f "$task_file" ] || continue
+
+        # Extract task summary (title after # Task:)
+        local task_summary=$(grep -m1 "^# Task:" "$task_file" | sed 's/^# Task: //' | head -c 100)
+        if [ -z "$task_summary" ]; then
+            local task_summary=$(basename "$task_file" .md)
+        fi
+
+        # Check if task already exists
+        local existing_task=$(grep -o 'jira_key: [A-Z]*-[0-9]*' "$task_file" | cut -d' ' -f2)
+
+        if [ -n "$existing_task" ]; then
+            echo "  Using existing Task: $existing_task - $task_summary"
+            local task_key="$existing_task"
+        else
+            echo "  Creating Task: $task_summary..."
+            local task_desc=$(create_adf_desc "See: plans/$scope/tasks/$(basename "$task_file")")
+            local task_response=$(jira_api_call POST '/issue' "{
+                \"fields\": {
+                    \"project\": { \"key\": \"$jira_project\" },
+                    \"summary\": \"$task_summary\",
+                    \"description\": $task_desc,
+                    \"issuetype\": { \"id\": \"10007\" },
+                    \"parent\": { \"key\": \"$epic_key\" }
+                }
+            }")
+
+            if echo "$task_response" | grep -q '"key"'; then
+                local task_key=$(echo "$task_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
+                echo "    Created: $task_key"
+
+                # Update task file with jira_key and jira_url
+                local jira_url="https://$JIRA_DOMAIN/browse/$task_key"
+                sed -i '' "s/^---\$/---\njira_key: $task_key\njira_url: $jira_url\n---/" "$task_file" 2>/dev/null || \
+                sed -i "0,/^---$/s/^---$/---\njira_key: $task_key\njira_url: $jira_url\n---/" "$task_file"
+            else
+                echo "    ERROR: Failed to create Task"
+                continue
+            fi
+        fi
+
+        # Create subtasks from checkboxes
+        local subtask_count=0
+        local in_checklist=0
+
+        # Read file line by line
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Track when we enter/exit Validation Checklist section
+            case "$line" in
+                "## Validation Checklist")
+                    in_checklist=1
+                    continue
+                    ;;
+                "##"*)
+                    # Any ## header ends the checklist section
+                    in_checklist=0
+                    continue
+                    ;;
+            esac
+
+            # Only process lines inside Validation Checklist
+            if [ $in_checklist -eq 1 ]; then
+                # Check if line STARTs with "- [ ] " (checkbox, not code block or comment)
+                # Must be exact match for checkbox unchecked, not "- [x]" completed
+                if [[ "$line" == "- [ ]"* ]] && [[ "$line" != "- [ ]"*"\`\`\`"* ]]; then
+                    local subtask_name=$(extract_checkbox_name "$line")
+
+                    # Skip empty or too-short checkboxes (need actual content)
+                    if [ -n "$subtask_name" ] && [ ${#subtask_name} -gt 2 ]; then
+                        echo "    Creating Subtask: $subtask_name..."
+                        local sub_desc=$(create_adf_desc "Subtask from checklist")
+                        local sub_response=$(jira_api_call POST '/issue' "{
+                            \"fields\": {
+                                \"project\": { \"key\": \"$jira_project\" },
+                                \"summary\": \"$subtask_name\",
+                                \"description\": $sub_desc,
+                                \"issuetype\": { \"id\": \"10006\" },
+                                \"parent\": { \"key\": \"$task_key\" }
+                            }
+                        }")
+
+                        if echo "$sub_response" | grep -q '"key"'; then
+                            local sub_key=$(echo "$sub_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
+                            echo "      Created: $sub_key"
+                            subtask_count=$((subtask_count + 1))
+                        fi
+                    fi
+                fi
+            fi
+        done < "$task_file"
+
+        if [ $subtask_count -gt 0 ]; then
+            echo "      Subtasks created: $subtask_count"
+        fi
+
+        task_count=$((task_count + 1))
+        echo ""
     done
 
-    local all=$((completed + total))
-    local percent=0
-    [ "$all" -gt 0 ] && percent=$((completed * 100 / all))
-
+    echo "=== JIRA Push Complete ==="
+    echo "Epic: $epic_key"
+    echo "Tasks created: $task_count"
     echo ""
-    echo "Completed subtasks to push:"
-    for f in "$tasks_dir"/*.md 2>/dev/null; do
-        [ -f "$f" ] || continue
-        local task_name=$(basename "$f" .md)
-        local done_count=$(grep -c "\- \[x\]" "$f" 2>/dev/null || echo "0")
-        [ "$done_count" -gt 0 ] && echo "  $task_name: $done_count completed"
-    done
-    echo ""
-
-    echo "Progress: $completed/$all ($percent%)"
-
-    # Example: Add comment to epic
-    local comment="CheatScale Feature Update:
-- Completed: $completed subtasks
-- Remaining: $total subtasks
-- Progress: $percent%
-
-*Synced from feature: $scope*"
-
-    # Uncomment to actually push:
-    # jira_api_call POST "/issue/$jira_epic/comment" "\"body\": \"$comment\""
-
-    echo ""
-    echo "JIRA push complete (simulated)"
-    echo "  Uncomment jira_api_call in jira-push.sh to enable actual push"
+    echo "JIRA Links:"
+    echo "  https://$JIRA_DOMAIN/browse/$epic_key"
 }
 
-# Sync status bidirectional
+# Sync checkbox status (Phase 3)
 sync_status() {
-    local scope="${1:-core}"
+    local scope="${1:-}"
 
-    echo "=== Bidirectional Sync: JIRA <> Feature ==="
-
-    echo "1. Fetching latest from JIRA..."
-    # Placeholder
-
-    echo "2. Merging with local feature + tasks..."
-    # Placeholder
-
-    echo "3. Pushing updates to JIRA..."
-    # Placeholder
-
-    echo "Sync complete"
+    echo "=== Syncing Status: $scope ==="
+    echo "Feature: Placeholder for bidirectional sync"
 }
 
 # Main
 case "${1:-}" in
-    push)
-        push_to_jira "$2"
+    create)
+        create_jira_hierarchy "$2"
         ;;
     sync)
         sync_status "$2"
         ;;
     *)
-        echo "JIRA Push - CheatScale Integration"
+        echo "JIRA Push Script"
         echo ""
         echo "Usage: $0 <command> [scope]"
         echo ""
         echo "Commands:"
-        echo "  push [scope]   - Push feature status to JIRA (default: core)"
-        echo "  sync [scope]   - Bidirectional sync"
+        echo "  create <scope>  - Create Epic > Task > Subtask hierarchy"
+        echo "  sync <scope>   - Sync checkbox status"
         echo ""
         echo "Examples:"
-        echo "  $0 push billing"
-        echo "  $0 sync auth"
+        echo "  $0 create test_portofoll"
+        echo "  $0 sync billing"
         ;;
 esac

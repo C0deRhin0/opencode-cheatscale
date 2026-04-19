@@ -55,7 +55,48 @@ jira_ping() {
     fi
 }
 
+# Create JIRA project (space)
+jira_create_project() {
+    local project_name="$1"
+    local project_key="$2"
+    
+    echo "Creating JIRA project: $project_name ($project_key)..."
+    
+    # Try minimal - just key, name, and projectTypeKey (Jira will use default template)
+    local response=$(jira_api_call POST "/project" "{
+        \"key\": \"$project_key\",
+        \"name\": \"$project_name\",
+        \"projectTypeKey\": \"software\"
+    }")
+    
+    if echo "$response" | grep -q '"id"'; then
+        local created_key=$(echo "$response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
+        echo "✓ Created project: $created_key"
+        echo "$response"
+        return 0
+    else
+        echo "✗ Failed to create project"
+        echo "$response"
+        return 1
+    fi
+}
+
+# Check if project exists
+jira_project_exists() {
+    local project_key="$1"
+    
+    local response=$(jira_api_call GET "/project/$project_key")
+    
+    if echo "$response" | grep -q '"id"'; then
+        return 0  # Exists
+    else
+        return 1  # Does not exist
+    fi
+}
+
 # Export functions for use in other scripts
 export -f jira_api_call
 export -f jira_ping
+export -f jira_create_project
+export -f jira_project_exists
 export JIRA_BASE_URL
