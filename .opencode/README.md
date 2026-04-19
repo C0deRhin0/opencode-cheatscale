@@ -276,6 +276,81 @@ GitHub sees:
 
 ---
 
+## JIRA Integration
+
+CheatScale integrates seamlessly with Atlassian JIRA through the bootstrap workflow.
+
+### Bootstrap + JIRA Flow
+
+```bash
+# 1. Run bootstrap - you'll be asked 5 questions including JIRA
+/bootstrap "billing service"
+
+# Questions:
+# 1. Goal? → MVP Speed / Enterprise Scalability
+# 2. Stack? → AI Recommendation / Strict requirements
+# 3. Features? → Core Only / Full specification
+# 4. Space Name? → "Billing Service" → becomes scope: billing_service
+# 5. JIRA Project? → "BILLING_SERVICE" (or leave empty to skip)
+```
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **User-Provided Keys** | You provide your JIRA project key directly |
+| **Project Isolation** | Each feature can go to different JIRA projects |
+| **Flexible** | Leave JIRA Project empty to skip integration |
+| **Auto-Validation** | Bootstrap verifies project exists |
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/jira-push <scope>` | Push roadmap to JIRA (creates Epic > Tasks > Subtasks) |
+| `/jira-delete <scope>` | Delete JIRA epic and related issues |
+
+### Example
+
+```bash
+# With JIRA
+/bootstrap "billing service"
+# → Enter "BILLING_SERVICE" when asked for JIRA Project
+# → Creates roadmap in plans/billing_service/
+/jira-push billing_service
+# → Creates Epic + 4 Tasks + 33 Subtasks in BILLING_SERVICE
+
+# Without JIRA
+/bootstrap "personal site"
+# → Leave JIRA Project empty
+# → No JIRA integration, local roadmap only
+```
+
+### Frontmatter
+
+Each $SCOPE.md includes JIRA metadata:
+
+```yaml
+---
+scope: billing_service
+feature: Billing Service API
+jira_project: BILLING_SERVICE   # User-provided key
+jira_epic: BILL-1              # Created by jira-push
+---
+```
+
+Or without JIRA:
+
+```yaml
+---
+scope: personal_site
+feature: Personal Portfolio
+jira_project: none
+---
+```
+
+---
+
 ## License
 
 MIT
