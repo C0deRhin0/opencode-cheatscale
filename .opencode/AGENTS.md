@@ -32,6 +32,15 @@ This is a **production-ready AI coding plugin** providing 20 specialized agents,
 | critic | Adversarial review | Stress test plans and proposals |
 | researcher | Research support | Investigations and synthesis |
 | fact-checker | Verification and accuracy checks | Validate claims and assumptions |
+| frontend-engineer | Frontend implementation | UI components, pages |
+| database-engineer | Database schema design | Schema, migrations |
+| devops-engineer | CI/CD and infrastructure | Pipelines, deployments |
+| integration-engineer | Third-party integrations | API connections |
+| ml-engineer | ML/AI features | Model integration |
+| performance-reviewer | Performance analysis | Bottleneck identification |
+| accessibility-reviewer | WCAG compliance | Accessibility audits |
+| qa-engineer | Quality assurance | Test coverage, edge cases |
+| synthesis-writer | Bootstrap roadmap generation | Writing plans/ files in parallel |
 
 ## Agent Orchestration
 
