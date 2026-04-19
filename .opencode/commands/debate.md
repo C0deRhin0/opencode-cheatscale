@@ -18,7 +18,7 @@ Orchestrate a technical debate between specialized agents to reach a unified sol
 
 ## Boot Sequence (MANDATORY)
 
-1. Read `plans/$SCOPE/INSTRUCTIONS.md`, `plans/$SCOPE/coding_convention.md`, and `plans/$SCOPE/feature.md`
+1. Read `plans/$SCOPE/INSTRUCTIONS.md`, `plans/$SCOPE/coding_convention.md`, and `plans/$SCOPE/$SCOPE.md`
 2. Confirm project root with `ls -laF`
 
 ---
@@ -91,7 +91,7 @@ WAIT for user approval before saving.
 
 `[Mode: Deliver]`
 
-If approved, save the final plan to `plans/$SCOPE/feature.md` and create task files in `plans/$SCOPE/tasks/`.
+If approved, save the final plan to `plans/$SCOPE/$SCOPE.md` and create task files in `plans/$SCOPE/tasks/`.
 
 ---
 

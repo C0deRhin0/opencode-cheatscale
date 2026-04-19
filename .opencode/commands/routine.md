@@ -41,7 +41,7 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 `[Mode: Scan]`
 
 1. **Project Scan**: `ls -laF` to confirm structure
-2. **Read Context**: `plans/$SCOPE/feature.md`, `plans/$SCOPE/tasks/*.md`, `INSTRUCTIONS.md`, `coding_convention.md`
+2. **Read Context**: `plans/$SCOPE/$SCOPE.md`, `plans/$SCOPE/tasks/*.md`, `INSTRUCTIONS.md`, `coding_convention.md`
 3. **Task Analysis**: Parse tasks from roadmap, determine domain requirements
 
 ### Dynamic Agent Router

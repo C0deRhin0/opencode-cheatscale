@@ -32,7 +32,7 @@ Format: `/inject $SCOPE <requirements>`
 
 1. **Parse Scope**: Extract `$SCOPE` from `$ARGUMENTS` (first word)
 2. **Read Existing Context**:
-   - `plans/$SCOPE/feature.md` - Feature overview
+   - `plans/$SCOPE/$SCOPE.md` - Feature overview
    - `plans/$SCOPE/idea_research.md` - project brief
    - `plans/$SCOPE/coding_convention.md` - conventions
 
@@ -109,7 +109,7 @@ Output: UI component impact assessment
    - Append new conventions only if paradigm shift
    - Do NOT rewrite existing rules
 
-4. **Update `plans/$SCOPE/feature.md`**:
+4. **Update `plans/$SCOPE/$SCOPE.md`**:
 
     **Surgical Rules**:
     - DO NOT modify completed tasks
@@ -131,7 +131,7 @@ Output: UI component impact assessment
 
 - [ ] `plans/$SCOPE/idea_research.md` — reconciled (or confirmed unchanged)
 - [ ] `plans/$SCOPE/coding_convention.md` — updated (or confirmed unchanged)
-- [ ] `plans/$SCOPE/feature.md` — Feature overview (updated)
+- [ ] `plans/$SCOPE/$SCOPE.md` — Feature overview (updated)
 - [ ] `plans/$SCOPE/tasks/*.md` — Task files (created as needed)
 
 **Output**:

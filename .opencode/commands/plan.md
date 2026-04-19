@@ -5,7 +5,7 @@ subtask: true
 ---
 
 #  MANDATORY BOOT SEQUENCE
-**Before proceeding, you MUST synchronize context from `.opencode/instructions/INSTRUCTIONS.md` and `plans/$SCOPE/` (especially `feature.md` and `INSTRUCTIONS.md`).**
+**Before proceeding, you MUST synchronize context from `.opencode/instructions/INSTRUCTIONS.md` and `plans/$SCOPE/` (especially `$SCOPE.md` and `INSTRUCTIONS.md`).**
 
 ---
 

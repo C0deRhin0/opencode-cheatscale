@@ -32,7 +32,7 @@ Format: `/validate-roadmap $SCOPE`
 
 1. **Parse Scope**: Extract `$SCOPE` from `$ARGUMENTS`
 2. **Verify Files Exist**:
-   - `plans/$SCOPE/feature.md` (Feature overview, new structure)
+   - `plans/$SCOPE/$SCOPE.md` (Feature overview, new structure)
    - `plans/$SCOPE/tasks/*.md` (Task files, new structure)
    - `plans/$SCOPE/idea_research.md`
    - `plans/$SCOPE/coding_convention.md`
@@ -65,11 +65,11 @@ Format: `/validate-roadmap $SCOPE`
 
 ### Format Validation — `@critic`
 ```
-Read: plans/$SCOPE/feature.md, plans/$SCOPE/tasks/*.md
+Read: plans/$SCOPE/$SCOPE.md, plans/$SCOPE/tasks/*.md
 
 Verify (Feature structure):
-1. feature.md has required frontmatter (scope, feature, jira_epic)
-2. feature.md has Tasks section with at least 1 task
+1. $SCOPE.md has required frontmatter (scope, feature, jira_epic)
+2. $SCOPE.md has Tasks section with at least 1 task
 3. Each task file has Subtasks section with checkboxes
 4. All subtasks are future tense, atomic (15 min or less)
 5. No past-tense language ("already implemented", "was configured")
@@ -91,10 +91,10 @@ Output: Formatting violations list with severity
 
 ### Content Validation — `@qa-engineer`
 ```
-Read: plans/$SCOPE/feature.md, plans/$SCOPE/tasks/*.md, plans/$SCOPE/idea_research.md
+Read: plans/$SCOPE/$SCOPE.md, plans/$SCOPE/tasks/*.md, plans/$SCOPE/idea_research.md
 
 Verify:
-1. Tasks in feature.md map to goal in idea_research.md
+1. Tasks in $SCOPE.md map to goal in idea_research.md
 2. Task files have subtasks with checkboxes
 3. Subtasks are atomic (15 min or less)
 4. No orphaned subtasks
@@ -114,7 +114,7 @@ Output: Content gaps list
 
 ### Feasibility Review — `@critic`
 ```
-Analyze: plans/$SCOPE/feature.md against user constraints
+Analyze: plans/$SCOPE/$SCOPE.md against user constraints
 Context: Timeline, Team Size, Focus from Phase 0
 
 Challenge:
@@ -127,7 +127,7 @@ Output: Critical risk items with severity ratings
 
 ### Technical Review — `@architect`
 ```
-Analyze: plans/$SCOPE/feature.md, plans/$SCOPE/tasks/*.md against plans/$SCOPE/coding_convention.md
+Analyze: plans/$SCOPE/$SCOPE.md, plans/$SCOPE/tasks/*.md against plans/$SCOPE/coding_convention.md
 
 Challenge:
 - Does implementation approach match tech stack?

@@ -46,7 +46,7 @@ Output the situational report in a technical, zero-fluff format. Focus on what w
   - Example: `/push core P1D1` (OLD, deprecated but works)
 
 **3. Next Up**
-- Scan `plans/*/feature.md` for incomplete tasks
+- Scan `plans/*/$SCOPE.md` for incomplete tasks
 - Identify next task with pending subtasks: `grep -l "^\- \[ \]" plans/*/tasks/*.md`
 - **Command to execute**: `/routine <scope> <task-id>`
   - Example: `/routine auth login-flow` (NEW format)
