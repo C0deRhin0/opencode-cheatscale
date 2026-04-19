@@ -14,7 +14,7 @@ Generate project context using wave-based orchestration. All artifacts written t
 - **Wave-Based Dispatch**: Execute agents in parallel waves, sequential between waves
 - **Single Source of Truth**: All files written to `plans/$SCOPE/` only
 - **No Code Sovereignty Violation**: Subagents NEVER write to `codebase/` during bootstrap
-- **Orchestrator Synthesis**: Only Orchestrator writes files; subagents provide content
+- **Orchestrator Synthesis**: Only Orchestrator and Synthesis-writer write files; subagents provide content
 - **Phase 0 Scan**: Always scan project structure before routing
 
 ---
@@ -52,15 +52,46 @@ Generate project context using wave-based orchestration. All artifacts written t
    | Complex | 3+ domains, ambiguous requirements | + researcher, + critic |
 
 4. **Scope Name Extraction**:
-   - Extract first word from `$ARGUMENTS` as scope (e.g., `billing`, `auth`)
-   - Default to `core` if main project
+   - This now comes from the JIRA Space Name question (Step 5)
+   - Replace spaces with underscores: "Billing Service" → "billing_service"
+   - The user answer becomes both the scope and the JIRA project name
 
 5. **User Preferences** (via `question` tool):
-   - Primary Goal: MVP Speed OR Enterprise Scalability
-   - Tech Stack: Strict requirements OR AI recommendation
-   - Feature Priority: Core only OR Full specification
+   - (1) Content Management: How will you add content? (Static Markdown / Headless CMS / Not sure yet)
+   - (2) Design/Guidelines: Have existing brand assets or mockups? ( file path input from user / No, need recommendations)
+   - (3) Hosting: Where will this be deployed? (Vercel/Netlify / Existing AWS/GCP / Local machine / Need setup)
+   - (4) SEO/Analytics: Need SEO optimization or analytics? (Yes / No / Not sure yet)
+   - (5) Maintenance: Who updates content? (Technical (code) / Non-technical (CMS) / Don't know)
+   - (6) Framework/Architecture: What framework will be used for the feature (Existing / User Input / Recommend)
+   - (7) Space Name: Enter a name for this project (e.g., "My Portfolio") - this becomes $SCOPE folder name
+   - (8) JIRA Project: Enter your JIRA project key OR leave empty if not using JIRA
 
-6. **MANDATORY STOP**: Wait for user answers before Wave 0.5 / Wave 1
+6. **MANDATORY STOP**: Wait for user answers before Wave 1
+
+---
+
+## Phase 0.5: JIRA Project Validation (OPTIONAL)
+
+`[Mode: ValidateJIRA]`
+
+**Trigger**: Only runs if user provided a JIRA project key in Phase 0.
+
+1. **Use user-provided key**: If user entered "BILLING_SERVICE", use that directly
+2. **Scope name**: Convert space name to scope with underscores: "Billing Service" → `billing_service`
+3. **Query JIRA** to verify project exists:
+   ```
+   GET /project/{USER_PROVIDED_KEY}
+   ```
+4. **If exists → Proceed** with roadmap generation
+5. **If NOT exists → Show error**:
+   > "JIRA project '{KEY}' not found. Please create it in JIRA first or check your key."
+
+**If user left JIRA Project empty**:
+- Skip Phase 0.5 entirely
+- Set `jira_project: none` in $SCOPE.md
+- Proceed directly to Wave 1
+
+**Benefit**: User provides their own key - no conversion/validation needed.
 
 ---
 
@@ -98,7 +129,7 @@ Output: ExistingConventions list
 **Output feeds directly into**:
 - Wave 2 Domain Analysis (agents receive Existing Stack + Existing Conventions as context)
 - Synthesis (coding_convention.md extended with existing conventions)
-- feature.md (implementation approach aligned to existing stack)
+- $SCOPE.md (implementation approach aligned to existing stack)
 
 **MANDATORY**: Do NOT suggest replacing existing stack. New features MUST integrate with what exists.
 
@@ -130,6 +161,14 @@ Output: ExistingConventions list
 ```
 Analyze: $ARGUMENTS + user preferences
 Focus: Technical feasibility, architecture, data flow, performance, security
+
+User Preferences (from Phase 0):
+- Content Management: Static Markdown / Headless CMS / Not sure yet
+- Design/Guidelines: Have brand files / Need recommendations
+- Hosting: Vercel/Netlify / Existing AWS/GCP / Need setup
+- SEO/Analytics: Yes / No / Not sure yet
+- Maintenance: Technical / Non-technical / Don't know
+
 Output: Solution options with pros/cons + recommended approach
 Scope: plans/$SCOPE/ domain
 ```
@@ -138,6 +177,14 @@ Scope: plans/$SCOPE/ domain
 ```
 Analyze: $ARGUMENTS + user preferences
 Focus: UI structure, component design, user experience
+
+User Preferences (from Phase 0):
+- Content Management: Static Markdown / Headless CMS / Not sure yet
+- Design/Guidelines: Have brand files / Need recommendations
+- Hosting: Vercel/Netlify / Existing AWS/GCP / Need setup
+- SEO/Analytics: Yes / No / Not sure yet
+- Maintenance: Technical / Non-technical / Don't know
+
 Output: Visual approach options with pros/cons + recommended approach
 Scope: plans/$SCOPE/ domain
 ```
@@ -156,6 +203,14 @@ Scope: plans/$SCOPE/ domain
 ```
 Review: Phase 1-2 outputs (research + analysis)
 Focus: Feasibility risks, edge cases, hidden assumptions, timeline viability
+
+User Preferences (from Phase 0):
+- Content Management: Static Markdown / Headless CMS / Not sure yet
+- Design/Guidelines: Have brand files / Need recommendations
+- Hosting: Vercel/Netlify / Existing AWS/GCP / Need setup
+- SEO/Analytics: Yes / No / Not sure yet
+- Maintenance: Technical / Non-technical / Don't know
+
 Output: Critical issues list with severity ratings
 ```
 
@@ -180,128 +235,243 @@ scope: $SCOPE
 **File Frontmatter Mapping**:
 | File | Tags | Graph Role |
 |------|------|------------|
-| `$SCOPE.md` | `tags: [scope, $SCOPE]` | Hub node |
-| `idea_research.md` | `tags: [research, $SCOPE]` | Leaf → feature |
-| `coding_convention.md` | `tags: [convention, $SCOPE]` | Leaf → feature |
-| `INSTRUCTIONS.md` | `tags: [instructions, $SCOPE]` | Leaf → feature |
-| `feature.md` | `tags: [feature, $SCOPE]` | Bridge → $SCOPE |
-| `tasks/*.md` | `tags: [task, $SCOPE]` | Leaf → feature |
+| `$SCOPE.md` | `tags: [scope, $SCOPE]` | **Central Hub** (replaces both scope hub + feature) |
+| `idea_research.md` | `tags: [research, $SCOPE]` | Leaf → $SCOPE |
+| `coding_convention.md` | `tags: [convention, $SCOPE]` | Leaf → $SCOPE |
+| `INSTRUCTIONS.md` | `tags: [instructions, $SCOPE]` | Leaf → $SCOPE |
+| `tasks/*.md` | `tags: [task, $SCOPE]` | Leaf → $SCOPE |
 
 ---
 
-### Write Files
+### Parallel File Writing (Using synthesis-writer Agents)
 
-0. **Write `plans/$SCOPE/$SCOPE.md`** (Scope Hub Node — FIRST FILE):
-   ```markdown
-   ---
-   tags: [scope, $SCOPE]
-   type: scope
-   ---
-   # Scope: $SCOPE
+Instead of writing files sequentially, spawn **2 synthesis-writer agents in parallel** using the `task` tool with `subagent_type: "synthesis-writer"`.
 
-   ## Overview
-   <!-- One-sentence description of this scope -->
+**Step 1: Synthesize Context**
+- Combine all Wave 2 outputs (architect JSON, frontend-engineer JSON)
+- Combine Wave 3 outputs (critic JSON with issues)
+- Include user preferences (goal, tech_stack, features, scope, jira_project)
+- Include all task data from scope hub
 
-   ## Features
-   - [[feature]]
+**Step 2: Spawn 2 parallel synthesis-writers**
 
-   ## Context
-   - [[idea_research]]
-   - [[coding_convention]]
-   - [[INSTRUCTIONS]]
-   ```
-   > This file is the Obsidian graph hub. All other files in the scope connect through it.
+Invoke via `task` tool with explicit `@synthesis-writer` subagent_type:
 
-1. **Write `plans/$SCOPE/idea_research.md`**:
-   - Include frontmatter at top
-   - Link to other files: `See [[coding_convention]] and [[feature]]`
-   ```markdown
-   ---
-   tags: [research, $SCOPE]
-   scope: $SCOPE
-   ---
-   
-   ## Project Brief: $SCOPE
-   
-   ### Goal
-   <One sentence>
-   
-   ### Task
-   <Deliverables>
-   
-   ### Constraints
-   - Tech stack: <stack>
-   - Timeline: <phases>
-   - Non-goals: <out of scope>
-   ```
+```json
+// Writer A: Scope hub files
+task(
+  description: "Write scope hub files",
+  subagent_type: "synthesis-writer",
+  prompt: `Write these files for plans/$SCOPE/:
+- $SCOPE.md (central hub)
+- idea_research.md (project brief)
+- coding_convention.md (tech conventions)
+- INSTRUCTIONS.md (project rules)
 
-2. **Write `plans/$SCOPE/coding_convention.md`**:
-   - Include frontmatter at top
-   - Tech-stack specific best practices
-   - Naming conventions, file structure patterns
-   - Testing requirements (80%+ coverage)
-   - Link: `Related: [[idea_research]], [[feature]]`
+Context Packet:
+{
+  "scope": "$SCOPE",
+  "wave2": { "architect": {...}, "frontend": {...} },
+  "wave3": { "critic": {...} },
+  "user_preferences": {
+    "content_management": "Static Markdown / Headless CMS / Not sure yet",
+    "design_guidelines": "Yes, have files / No, need recommendations",
+    "hosting": "Vercel/Netlify / Existing AWS/GCP / Need setup",
+    "seo_analytics": "Yes / No / Not sure yet",
+    "maintenance": "Technical (code) / Non-technical (CMS) / Don't know",
+    "jira_project": "none or KEY"
+  }
+}
 
-3. **Write `plans/$SCOPE/INSTRUCTIONS.md`**:
-   - Include frontmatter at top
-   - Workspace boundaries: ``, `plans/$SCOPE/`, `codebase/`
-   - Key project conventions
-   - 3-Tier Architecture emphasis
-   - Link: `See [[feature]] for implementation`
+Include frontmatter with tags and scope in each file.`
+)
 
-4. **Write `plans/$SCOPE/feature.md`**:
-   - Include frontmatter with scope, feature, jira_epic
-   - Contains Feature overview and Tasks list
-   - **MUST link to scope hub**: include `Part of: [[$SCOPE]]` in body
-   - Link: `Based on [[idea_research]], [[coding_convention]], [[INSTRUCTIONS]]`
+// Writer B: Task files
+task(
+  description: "Write task files",
+  subagent_type: "synthesis-writer",
+  prompt: `Write all task files for plans/$SCOPE/tasks/:
 
-5. **Create `plans/$SCOPE/tasks/` directory**:
-   - Create individual task files: `tasks/{task-name}.md`
-   - Each task file contains subtasks with checkboxes
+Context Packet:
+{
+  "scope": "$SCOPE",
+  "wave2": { "architect": {...}, "frontend": {...} },
+  "wave3": { "critic": {...} },
+  "user_preferences": {
+    "content_management": "Static Markdown / Headless CMS / Not sure yet",
+    "design_guidelines": "Yes, have files / No, need recommendations",
+    "hosting": "Vercel/Netlify / Existing AWS/GCP / Need setup",
+    "seo_analytics": "Yes / No / Not sure yet",
+    "maintenance": "Technical (code) / Non-technical (CMS) / Don't know",
+    "jira_project": "none or KEY"
+  },
+  "tasks": ["task-1", "task-2", "task-3", ...]
+}
 
-   **feature.md Structure**:
-   ```markdown
-   ---
-   scope: {SCOPE}
-   feature: {FEATURE_NAME}
-   jira_epic: {EPIC_KEY}
-   tags: [feature, {SCOPE}]
-   ---
+Each task file needs:
+- Frontmatter with tags, scope, parent (wiki-link to $SCOPE)
+- Overview section
+- Command Sequence with exact bash commands
+- Validation Checklist
 
-   # Feature: {FEATURE_NAME}
+Output all files to plans/$SCOPE/tasks/*.md`
+)
+```
 
-   Part of: [[{SCOPE}]]
-   Based on: [[idea_research]] | [[coding_convention]] | [[INSTRUCTIONS]]
+**IMPORTANT**: Both synthesis-writers receive the FULL context packet. This ensures accurate content regardless of which files each writer produces.
 
-   ## Tasks
+**Validation after parallel write**:
+- [ ] All main files exist in `plans/$SCOPE/`
+- [ ] All task files exist in `plans/$SCOPE/tasks/`
+- [ ] All files have frontmatter with `tags:` and `scope:`
+- [ ] No duplicate writes (verify file counts)
 
-   ### Task: {TASK_NAME_1}
-   - [link to tasks/login-flow.md]
-   - Type: story | task | bug
-   - Estimate: {N} SP
+---
 
-   ### Task: {TASK_NAME_2}
-   - [link to tasks/password-reset.md]
-   - Type: story
-   ```
+## Completion Checklist
+```markdown
+---
+tags: [scope, $SCOPE]
+scope: $SCOPE
+jira_project: ""  # From JIRA Project question (or "none")
+jira_epic: ""     # Set by /jira-push
+type: scope
+---
 
-   **tasks/{TASK_NAME}.md Structure**:
-   ```markdown
-   ---
-   tags: [task, $SCOPE]
-   scope: $SCOPE
-   parent: "[[feature]]"
-   ---
-   # Task: {TASK_NAME}
+# Scope: $SCOPE
 
-   ## Subtasks
+## Overview
+<!-- One-sentence description -->
 
-   - [ ] Subtask: {SUBTASK_NAME_1}
-   - [ ] Subtask: {SUBTASK_NAME_2}
+## Technical Approach
+- **Architecture**: {description from Wave 2}
+- **Dependencies**: {list of packages}
+- **Key Files**:
+  - `{file-path}` - {description}
 
-   ## Notes
-   <!-- Implementation notes -->
-   ```
+## Tasks
+### Task: {TASK_NAME_1}
+- [[tasks/{task-name-1}.md]]
+- Type: story | task | bug
+- Estimate: {N} SP
+
+### Task: {TASK_NAME_2}
+- [[tasks/{task-name-2}.md]]
+- Type: story | task
+
+## Context
+- [[idea_research]]
+- [[coding_convention]]
+- [[INSTRUCTIONS]]
+```
+
+**idea_research.md** — Project brief:
+```markdown
+---
+tags: [research, $SCOPE]
+scope: $SCOPE
+---
+
+## Project Brief: $SCOPE
+
+### Goal
+<One sentence>
+
+### Task
+<Deliverables>
+
+### Constraints
+- Tech stack: <stack>
+- Timeline: <phases>
+- Non-goals: <out of scope>
+```
+
+**coding_convention.md** — Tech conventions:
+```markdown
+---
+tags: [convention, $SCOPE]
+scope: $SCOPE
+---
+
+# Coding Conventions: $SCOPE
+
+## Tech Stack
+- **Framework**: ...
+- **Language**: ...
+
+## File Structure
+```
+codebase/
+├── src/
+...
+```
+
+## Naming Conventions
+- **Components**: PascalCase
+- **Pages**: kebab-case
+```
+
+**INSTRUCTIONS.md** — Project rules:
+```markdown
+---
+tags: [instructions, $SCOPE]
+scope: $SCOPE
+---
+
+# Project Instructions: $SCOPE
+
+## Workspace Boundaries
+- **Implementation Root**: `codebase/`
+- **Plans Directory**: `plans/$SCOPE/`
+
+## Core Principles
+1. ...
+```
+
+**tasks/{TASK_NAME}.md** — Task file:
+```markdown
+---
+tags: [task, $SCOPE]
+scope: $SCOPE
+parent: "[[$SCOPE]]"
+jira_key: ""
+jira_url: ""
+---
+
+# Task: {TASK_NAME}
+
+**JIRA**: TBD
+
+## Overview
+{Brief description}
+
+## Command Sequence
+
+### 1. {SUBTASK_NAME}
+```bash
+# Exact command
+```
+
+- **Working Directory**: `{directory}`
+- **Expected Output**: {description}
+- **Files Changed**: `{file-path}`
+- **Verify**: {validation}
+
+## Validation Checklist
+- [ ] ...
+- [ ] ...
+
+## Notes
+{Implementation notes}
+```
+
+    ---
+
+    **JIRA Push Integration**:
+    After generating roadmap, run `/jira-push $SCOPE` to create:
+    - Epic with feature name
+    - Tasks with proper hierarchy
+    - Native Subtasks under each task (from checkbox list)
 
     **Note**: Maps 1:1 to JIRA (Epic > Task > Subtask)
 
@@ -321,20 +491,17 @@ scope: $SCOPE
 
 ## Completion Checklist
 
-- [ ] `plans/$SCOPE/$SCOPE.md` — Scope hub node (Obsidian graph root)
+- [ ] `plans/$SCOPE/$SCOPE.md` — Central hub (scope + feature combined)
 - [ ] `plans/$SCOPE/idea_research.md` — Project brief
 - [ ] `plans/$SCOPE/coding_convention.md` — Tech conventions
 - [ ] `plans/$SCOPE/INSTRUCTIONS.md` — Project rules
-- [ ] `plans/$SCOPE/feature.md` — Feature overview with `Part of: [[$SCOPE]]` link
-- [ ] `plans/$SCOPE/tasks/*.md` — Task files with `parent: "[[feature]]"`
-- [ ] `feature.md` links to `[[$SCOPE]]` (scope hub) in body
-- [ ] (If codebase-aware) `coding_convention.md` includes ExistingConventions from Wave 0.5
+- [ ] `plans/$SCOPE/tasks/*.md` — Task files with `parent: "[[$SCOPE]]"`
 
 **Output**:
 ```
 ## Bootstrap Complete [$SCOPE]
 
-Generated 4 context files in plans/$SCOPE/
+Generated 5 context files in plans/$SCOPE/
 Complexity: [Simple/Medium/Complex]
 Waves Executed: [1/2/3]
 ```
@@ -345,7 +512,7 @@ Waves Executed: [1/2/3]
 
 **Files now include frontmatter** for Obsidian graph linking:
 - Each file has `tags: [type, $SCOPE]` and `scope: $SCOPE`
-- Wiki-links connect files: `[[feature]], [[idea_research]], etc.`
+- Wiki-links connect files: `[[$SCOPE]], [[idea_research]], [[coding_convention]], etc.`
 
 Configure Obsidian vault to project root (`./`) or `plans/`. All roadmaps visible in graph view.
 

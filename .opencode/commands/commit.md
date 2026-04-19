@@ -21,7 +21,7 @@ You are STRICTLY FORBIDDEN from using emojis in any generated output. All text m
 
 ## Boot Sequence (MANDATORY)
 
-1. Read `plans/$SCOPE/feature.md` and relevant task file in `plans/$SCOPE/tasks/`
+1. Read `plans/$SCOPE/$SCOPE.md` and relevant task file in `plans/$SCOPE/tasks/`
 2. Confirm project root with `ls -laF`
 
 ---
