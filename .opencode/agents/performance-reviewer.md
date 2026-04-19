@@ -1,6 +1,7 @@
 ---
 name: performance-reviewer
 description: Performance specialist for identifying bottlenecks, memory issues, latency problems, and optimization opportunities. Analyzes query performance, rendering patterns, and bundle optimization.
+temperature: 0.3
 mode: subagent
 tools:
   read: true

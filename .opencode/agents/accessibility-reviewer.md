@@ -1,6 +1,7 @@
 ---
 name: accessibility-reviewer
 description: WCAG compliance specialist for ensuring digital accessibility. Analyzes semantic HTML, ARIA labels, keyboard navigation, screen reader support, and color contrast compliance.
+temperature: 0.3
 mode: subagent
 tools:
   read: true

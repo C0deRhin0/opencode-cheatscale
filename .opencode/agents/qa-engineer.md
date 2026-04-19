@@ -1,6 +1,7 @@
 ---
 name: qa-engineer
 description: Quality assurance specialist for test coverage, edge case identification, and regression detection. Analyzes test suites, identifies coverage gaps, and ensures quality gates pass before delivery.
+temperature: 0.2
 mode: subagent
 tools:
   read: true

@@ -1,6 +1,7 @@
 ---
 name: database-engineer
 description: Database specialist for schema design, query optimization, migrations, and data modeling. Implements PostgreSQL/Supabase patterns with proper indexing, RLS policies, and data integrity.
+temperature: 0.4
 mode: subagent
 tools:
   read: true
