@@ -1,6 +1,7 @@
 ---
 name: critic
 description: Enterprise adversarial reviewer. Stress-tests proposals, plans, code, and architecture for edge cases, security flaws, architectural debt, and hidden risks. Multiple review modes for comprehensive coverage.
+temperature: 0.6
 mode: subagent
 tools:
   read: true

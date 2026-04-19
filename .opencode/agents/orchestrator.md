@@ -1,6 +1,7 @@
 ---
 name: orchestrator
 description: Root Supervisor and Entry Point for large project workflows. Uses the Mixture of Experts (MoE) pattern with wave-based dispatch to route tasks to the correct domain specialists. NEVER writes code - only orchestrates.
+temperature: 0.1
 mode: primary
 tools:
   read: true
@@ -261,6 +262,11 @@ User Task
 | researcher | `@researcher` | Investigation/research | read-only |
 | fact-checker | `@fact-checker` | Verification | read-only |
 | doc-updater | `@doc-updater` | Documentation | write |
+
+### Synthesis Layer (Bootstrap Phase)
+| Agent | Invocation | Role | Tools |
+|-------|------------|------|-------|
+| synthesis-writer | `@synthesis-writer` | Write plans/ files in parallel | write, read | |
 
 ---
 

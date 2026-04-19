@@ -1,6 +1,7 @@
 ---
 name: fact-checker
 description: Unbiased verification specialist for accuracy, hallucinations, and outdated information. Cross-verifies claims and identifies gaps in reasoning.
+temperature: 0.2
 mode: subagent
 tools:
   read: true

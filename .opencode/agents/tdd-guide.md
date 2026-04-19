@@ -1,6 +1,7 @@
 ---
 name: tdd-guide
 description: Test-Driven Development specialist enforcing write-tests-first methodology. Use PROACTIVELY when writing new features, fixing bugs, or refactoring code. Ensures 80%+ test coverage.
+temperature: 0.3
 mode: subagent
 tools:
   read: true

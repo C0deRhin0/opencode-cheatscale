@@ -1,6 +1,7 @@
 ---
 name: build
 description: Primary coding agent for ad-hoc development tasks. Used when no roadmap exists or task is generic and requires user context. Direct-use agent - no boot sequence, no invocation required, unrestricted file access.
+temperature: 0.1
 mode: primary
 tools:
   read: true

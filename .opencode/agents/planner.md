@@ -1,6 +1,7 @@
 ---
 name: planner
 description: Pure task decomposition specialist. Analyzes complex requirements and breaks them into atomic, executable steps for domain specialists. NEVER writes code - only produces decomposition artifacts.
+temperature: 0.4
 mode: subagent
 tools:
   read: true

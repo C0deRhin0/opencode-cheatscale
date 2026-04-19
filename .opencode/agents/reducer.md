@@ -1,6 +1,7 @@
 ---
 name: reducer
 description: Synthesizes multi-worker or multi-supervisor outputs into a coherent, final result. Use PROACTIVELY to merge disjointed deliverables from parallel agents.
+temperature: 0.1
 mode: subagent
 tools:
   read: true

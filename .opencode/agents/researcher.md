@@ -1,6 +1,7 @@
 ---
 name: researcher
 description: General-purpose research specialist with broad knowledge spanning technical and non-technical domains. Conducts deep research, cross-verifies sources, and provides synthesis with trade-off analysis.
+temperature: 0.6
 mode: subagent
 tools:
   read: true
