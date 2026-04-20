@@ -1,7 +1,6 @@
 ---
 description: Trigger an adversarial debate between specialized agents for a unified, hardened solution
 agent: orchestrator
-subtask: true
 ---
 
 # Adversarial Debate: $ARGUMENTS
