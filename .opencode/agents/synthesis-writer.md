@@ -69,6 +69,30 @@ Synthesis-Writer A              Synthesis-Writer B
 3. **No Code Sovereignty** — Never write to `codebase/` during bootstrap; only `plans/`
 4. **Accurate Content** — Use Wave 2/3 context accurately; don't hallucinate
 
+## MANDATORY VALIDATION CHECKLIST (Before Writing Any File)
+
+Before writing ANY task file, you MUST verify:
+
+### Checkbox Syntax (CRITICAL)
+- ALL validation checkboxes MUST be in **FUTURE TENSE** starting with action verbs
+- **CORRECT**: `- [ ] Verify that package.json exists with eleventy in devDependencies`
+- **CORRECT**: `- [ ] Ensure npm run build produces output in _site/ directory`  
+- **WRONG**: `- [ ] package.json exists with eleventy in devDependencies` (present tense)
+- **WRONG**: `- [ ] .eleventy.js configuration file is present` (passive voice)
+
+### Task File Structure (CRITICAL)
+- Task file MUST exist in `plans/$SCOPE/tasks/` directory (NOT a single tasks.md)
+- Each task file MUST have:
+  - Frontmatter with `tags: [task, $SCOPE]`, `scope: $SCOPE`, `parent: "[[$SCOPE]]"`
+  - `## Validation Checklist` section with checkboxes
+  - Checkboxes using `- [ ]` format
+
+### Technical Completeness (CRITICAL)
+- If using Tailwind CSS: Must include PostCSS/build step in commands
+- If using Eleventy: Must have properPassthroughCopy configuration
+- If CSS framework specified: Must document HOW it's included in HTML
+- Must include git initialization for data durability
+
 ## Tools
 
 - **write**: Create new files in `plans/$SCOPE/`
