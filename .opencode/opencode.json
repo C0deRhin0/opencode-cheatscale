@@ -356,8 +356,7 @@
     "plan": {
       "description": "Create a detailed implementation plan for complex features",
       "template": "{file:commands/plan.md}\n\n$ARGUMENTS",
-      "agent": "orchestrator",
-      "subtask": true
+      "agent": "orchestrator"
     },
     "tdd": {
       "description": "Enforce TDD workflow with 80%+ test coverage",
@@ -386,14 +385,12 @@
     "execute": {
       "description": "Execute an approved plan or ad-hoc task with full agent-driven implementation, audit, and delivery",
       "template": "{file:commands/execute.md}\n\n$ARGUMENTS",
-      "agent": "orchestrator",
-      "subtask": true
+      "agent": "orchestrator"
     },
     "routine": {
       "description": "Execute a roadmap phase with atomic task checkpointing — implement, audit, commit per task",
       "template": "{file:commands/routine.md}\n\n$ARGUMENTS",
-      "agent": "orchestrator",
-      "subtask": true
+      "agent": "orchestrator"
     },
     "checkpoint": {
       "description": "Save verification state and progress",
@@ -429,14 +426,12 @@
     "debate": {
       "description": "Trigger a debate between specialized agents for a better, unified solution",
       "template": "{file:commands/debate.md}\n\n$ARGUMENTS",
-      "agent": "orchestrator",
-      "subtask": true
+      "agent": "orchestrator"
     },
     "research": {
       "description": "Run an adversarial research loop for high-confidence answers to any question",
       "template": "{file:commands/research.md}\n\n$ARGUMENTS",
-      "agent": "orchestrator",
-      "subtask": true
+      "agent": "orchestrator"
     },
     "validate-roadmap": {
       "description": "Verify, validate, review, and scope the current roadmap implementation",
