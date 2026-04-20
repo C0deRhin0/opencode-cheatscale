@@ -35,7 +35,7 @@ create_jira_hierarchy() {
     fi
 
     # Determine JIRA project
-    local jira_project=$(grep -o 'jira_project: [A-Z]*' "$feature_file" | cut -d' ' -f2)
+    local jira_project=$(grep '^jira_project:' "$feature_file" | head -1 | awk '{print $2}' | tr -d '"'"'"' ')
     jira_project="${jira_project:-$JIRA_PROJECT_KEY}"
 
     if [ -z "$jira_project" ]; then
@@ -53,11 +53,30 @@ create_jira_hierarchy() {
     fi
 
     # Check if Epic already exists
-    local existing_epic=$(grep -o 'jira_epic: [A-Z]*-[0-9]*' "$feature_file" | cut -d' ' -f2)
+    local existing_epic=$(grep '^jira_epic:' "$feature_file" | head -1 | awk '{print $2}' | tr -d '"'"'"' ')
+
+    # If frontmatter is missing epic, query JIRA explicitly
+    if [ -z "$existing_epic" ]; then
+        echo "  [Check] Verifying if Epic '$feature_name' already exists in JIRA..."
+        local jql_payload="{\"jql\":\"project = \\\"$jira_project\\\" AND issuetype = Epic AND summary ~ \\\"$feature_name\\\"\",\"maxResults\":1,\"fields\":[\"key\"]}"
+        local search_response=$(jira_api_call POST "/search/jql" "$jql_payload")
+        local found_key=$(echo "$search_response" | grep -o '"key":"[^"]*"' | head -1 | cut -d'"' -f4)
+        
+        if [ -n "$found_key" ]; then
+            echo "  [Found] Discovered existing Epic in JIRA: $found_key"
+            existing_epic="$found_key"
+        fi
+    fi
 
     if [ -n "$existing_epic" ]; then
         echo "Using existing Epic: $existing_epic"
         local epic_key="$existing_epic"
+        
+        # Backfill frontmatter if it was missing locally
+        if ! grep -q "^jira_epic:.*" "$feature_file"; then
+            sed -i '' "s/^---\$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file" 2>/dev/null || \
+            sed -i "0,/^---$/s/^---$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file"
+        fi
     else
         echo "Creating Epic: $feature_name..."
         local epic_desc=$(create_adf_desc "Created from bootstrap roadmap. See: plans/$scope/")
@@ -99,7 +118,17 @@ create_jira_hierarchy() {
         fi
 
         # Check if task already exists
-        local existing_task=$(grep -o 'jira_key: [A-Z]*-[0-9]*' "$task_file" | cut -d' ' -f2)
+        local existing_task=$(grep '^jira_key:' "$task_file" | head -1 | awk '{print $2}' | tr -d '"'"'"' ')
+
+        # If frontmatter misses task, query JIRA explicitly
+        if [ -z "$existing_task" ]; then
+            local task_jql="{\"jql\":\"project = \\\"$jira_project\\\" AND parent = \\\"$epic_key\\\" AND summary ~ \\\"$task_summary\\\"\",\"maxResults\":1,\"fields\":[\"key\"]}"
+            local task_search=$(jira_api_call POST "/search/jql" "$task_jql")
+            local found_task=$(echo "$task_search" | grep -o '"key":"[^"]*"' | head -1 | cut -d'"' -f4)
+            if [ -n "$found_task" ]; then
+                existing_task="$found_task"
+            fi
+        fi
 
         if [ -n "$existing_task" ]; then
             echo "  Using existing Task: $existing_task - $task_summary"
