@@ -1,7 +1,6 @@
 ---
 description: Run an adversarial research loop for high-confidence answers using MCP web search
 agent: orchestrator
-subtask: true
 ---
 
 # Adversarial Research: $ARGUMENTS
@@ -17,11 +16,6 @@ Three-phase loop: Research → Verify → Synthesize.
 - **Code Sovereignty**: Only the orchestrating agent writes files; research agents are read-only
 - **Stop-Loss**: Do not advance to the next phase until the current phase output is validated
 - **Source-First**: Every claim must have a cited source. No unsourced assertions.
-
-## Boot Sequence (MANDATORY)
-
-1. Read `plans/$SCOPE/idea_research.md` for existing project context
-2. Confirm project root with `ls -laF`
 
 ---
 
