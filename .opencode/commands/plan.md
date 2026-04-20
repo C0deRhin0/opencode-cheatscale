@@ -1,7 +1,6 @@
 ---
 description: Create implementation plan with adversarial risk assessment
 agent: orchestrator
-subtask: true
 ---
 
 #  MANDATORY BOOT SEQUENCE
