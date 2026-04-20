@@ -307,6 +307,7 @@ CheatScale integrates seamlessly with Atlassian JIRA through the bootstrap workf
 
 | Command | Description |
 |---------|-------------|
+| `/commit-all` | Commit all changes separately, then push |
 | `/jira-push <scope>` | Push roadmap to JIRA (creates Epic > Tasks > Subtasks) |
 | `/jira-delete <scope>` | Delete JIRA epic and related issues |
 

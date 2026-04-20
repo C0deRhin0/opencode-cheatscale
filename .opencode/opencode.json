@@ -447,6 +447,11 @@
       "description": "Delete JIRA epic, tasks, and subtasks from a roadmap feature",
       "template": "{file:commands/jira-delete.md}\n\n$ARGUMENTS",
       "agent": "orchestrator"
+    },
+    "commit-all": {
+      "description": "Detect all changes, commit each separately, then push all",
+      "template": "{file:commands/commit-all.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
     }
   },
   "permission": {
