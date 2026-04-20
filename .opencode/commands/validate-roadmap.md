@@ -89,17 +89,20 @@ Verify JIRA Mapping (optional):
 Output: Formatting violations list with severity
 ```
 
-### Content Validation — `@qa-engineer`
+### Content Validation — `@code-reviewer`
 ```
 Read: plans/$SCOPE/$SCOPE.md, plans/$SCOPE/tasks/*.md, plans/$SCOPE/idea_research.md
 
+IMPORTANT: You are validating ROADMAP STRUCTURE, not code. Do NOT useqa-engineer checklist.
+
 Verify:
 1. Tasks in $SCOPE.md map to goal in idea_research.md
-2. Task files have subtasks with checkboxes
-3. Subtasks are atomic (15 min or less)
-4. No orphaned subtasks
+2. Task files exist in plans/$SCOPE/tasks/ directory
+3. Each task file has ## Validation Checklist section with checkboxes (- [ ])
+4. Subtasks are atomic (15 min or less)
+5. No orphaned checkboxes (all should have parent task)
 
-Output: Content gaps list
+Output: Content gaps found with specific file paths
 ```
 
 **Wait for BOTH responses**
@@ -156,35 +159,48 @@ Output: Technical concerns list
 
 2. **Generate Validation Report**:
    ```markdown
-   ## Validate Roadmap: [$SCOPE]
-   
-   ### Summary
-   - Validation Type: [Quick/Standard/Deep]
-   - Files Verified: [list]
-   
-   ### Structural Issues [CRITICAL/HIGH/MEDIUM]
-   | Issue | Location | Severity |
-   |-------|----------|----------|
-   
-   ### Content Gaps
-   | Gap | Impact | Recommendation |
-   |-----|--------|----------------|
-   
-   ### Risk Assessment
+   ---
+   tags: [validation, $SCOPE]
+   scope: $SCOPE
+   type: validation
+   ---
+
+   # Validate Roadmap: $SCOPE
+
+   ## Executive Summary
+   Validation performed on: **$SCOPE**
+   - Validation Type: **$TYPE**
+   - Files Verified: **$COUNT** files
+
+   ---
+
+   ## Issues Found
+
+   ### Critical Issues (Must Fix)
+   $ISSUES_TABLE
+
+   ### High Priority Issues
+   $ISSUES_TABLE
+
+   ### Medium/Low Issues
+   $ISSUES_TABLE
+
+   ---
+
+   ## Risk Assessment
    | Risk | Severity | Mitigation |
    |------|----------|------------|
-   
-   ### Technical Concerns
-   | Concern | Resolution |
-   |----------|------------|
-   
-   ### Verdict
-   - [ ] APPROVE - Roadmap ready for execution
-   - [ ] CONDITIONAL - Fix critical issues before execution
-   - [ ] REJECT - Requires significant rework
+   | $RISK | $SEVERITY | $MITIGATION |
+
+   ---
+
+   ## Verdict
+   - [ ] **APPROVE** - Roadmap ready for execution
+   - [ ] **CONDITIONAL** - Fix critical issues before execution
+   - [ ] **REJECT** - Requires significant rework
    ```
 
-3. **Present to User** - Do NOT silently edit. Let user decide:
+3. **Present to User** - Format output using markdown tables and emojis for readability:
    - Run `/inject` to fix specific issues
    - Run `/bootstrap` for complete rebuild
    - Manual edits
