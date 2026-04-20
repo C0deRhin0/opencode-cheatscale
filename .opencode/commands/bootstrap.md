@@ -283,7 +283,16 @@ Context Packet:
   }
 }
 
-Include frontmatter with tags and scope in each file.`
+Include frontmatter with tags and scope in each file.
+For $SCOPE.md, you MUST use EXACTLY this template:
+---
+tags: [scope, $SCOPE]
+scope: $SCOPE
+jira_project: "{user_preferences.jira_project}"
+jira_epic: ""
+type: scope
+---
+# Scope: $SCOPE`
 )
 
 // Writer B: Task files
@@ -308,11 +317,26 @@ Context Packet:
   "tasks": ["task-1", "task-2", "task-3", ...]
 }
 
-Each task file needs:
-- Frontmatter with tags, scope, parent (wiki-link to $SCOPE)
-- Overview section
-- Command Sequence with exact bash commands
-- Validation Checklist
+Each task file needs EXACTLY this hardcoded template to ensure JIRA compatibility:
+
+---
+tags: [task, $SCOPE]
+scope: $SCOPE
+parent: "[[$SCOPE]]"
+jira_key: ""
+jira_url: ""
+---
+# Task: {Task Name}
+
+## Overview
+{Brief description}
+
+## Command Sequence
+{Steps}
+
+## Validation Checklist
+- [ ] {Subtask 1}
+- [ ] {Subtask 2}
 
 Output all files to plans/$SCOPE/tasks/*.md`
 )
