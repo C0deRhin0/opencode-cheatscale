@@ -96,7 +96,6 @@ $epic_summary
 - [[feature]]
 
 ## Context
-- [[idea_research]]
 - [[coding_convention]]
 - [[INSTRUCTIONS]]
 SCOPE_EOF
