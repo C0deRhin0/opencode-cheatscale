@@ -46,8 +46,8 @@ create_jira_hierarchy() {
     echo "=== Creating JIRA Hierarchy: $scope ==="
     echo "Project: $jira_project"
 
-    # Extract feature name from title line
-    local feature_name=$(grep -m1 "^# " "$feature_file" | sed 's/^# //' | head -c 100)
+    # Extract feature name from title line (strip prefixes like "Scope: " or "Feature: ")
+    local feature_name=$(grep -m1 "^# " "$feature_file" | sed 's/^# //' | sed 's/^Scope: //' | sed 's/^Feature: //' | head -c 100)
     if [ -z "$feature_name" ]; then
         feature_name="$scope"
     fi
@@ -72,11 +72,11 @@ create_jira_hierarchy() {
         echo "Using existing Epic: $existing_epic"
         local epic_key="$existing_epic"
         
-        # Backfill frontmatter if it was missing locally
-        if ! grep -q "^jira_epic:.*" "$feature_file"; then
-            sed -i '' "s/^---\$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file" 2>/dev/null || \
-            sed -i "0,/^---$/s/^---$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file"
-        fi
+        # Update frontmatter fields in-place
+        sed -i '' "s/^jira_epic:.*/jira_epic: $epic_key/" "$feature_file" 2>/dev/null || \
+        sed -i "s/^jira_epic:.*/jira_epic: $epic_key/" "$feature_file"
+        sed -i '' "s/^jira_project:.*/jira_project: $jira_project/" "$feature_file" 2>/dev/null || \
+        sed -i "s/^jira_project:.*/jira_project: $jira_project/" "$feature_file"
     else
         echo "Creating Epic: $feature_name..."
         local epic_desc=$(create_adf_desc "Created from bootstrap roadmap. See: plans/$scope/")
@@ -93,9 +93,11 @@ create_jira_hierarchy() {
             local epic_key=$(echo "$epic_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
             echo "Created Epic: $epic_key"
 
-            # Update feature file with jira_epic
-            sed -i '' "s/^---\$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file" 2>/dev/null || \
-            sed -i "0,/^---$/s/^---$/---\njira_project: $jira_project\njira_epic: $epic_key\n---/" "$feature_file"
+            # Update feature file frontmatter fields in-place
+            sed -i '' "s/^jira_epic:.*/jira_epic: $epic_key/" "$feature_file" 2>/dev/null || \
+            sed -i "s/^jira_epic:.*/jira_epic: $epic_key/" "$feature_file"
+            sed -i '' "s/^jira_project:.*/jira_project: $jira_project/" "$feature_file" 2>/dev/null || \
+            sed -i "s/^jira_project:.*/jira_project: $jira_project/" "$feature_file"
         else
             echo "ERROR: Failed to create Epic"
             echo "$epic_response"
@@ -150,10 +152,12 @@ create_jira_hierarchy() {
                 local task_key=$(echo "$task_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
                 echo "    Created: $task_key"
 
-                # Update task file with jira_key and jira_url
+                # Update task file frontmatter fields in-place
                 local jira_url="https://$JIRA_DOMAIN/browse/$task_key"
-                sed -i '' "s/^---\$/---\njira_key: $task_key\njira_url: $jira_url\n---/" "$task_file" 2>/dev/null || \
-                sed -i "0,/^---$/s/^---$/---\njira_key: $task_key\njira_url: $jira_url\n---/" "$task_file"
+                sed -i '' "s|^jira_key:.*|jira_key: $task_key|" "$task_file" 2>/dev/null || \
+                sed -i "s|^jira_key:.*|jira_key: $task_key|" "$task_file"
+                sed -i '' "s|^jira_url:.*|jira_url: $jira_url|" "$task_file" 2>/dev/null || \
+                sed -i "s|^jira_url:.*|jira_url: $jira_url|" "$task_file"
             else
                 echo "    ERROR: Failed to create Task"
                 continue
