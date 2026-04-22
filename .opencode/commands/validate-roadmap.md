@@ -34,7 +34,6 @@ Format: `/validate-roadmap $SCOPE`
 2. **Verify Files Exist**:
    - `plans/$SCOPE/$SCOPE.md` (Feature overview, new structure)
    - `plans/$SCOPE/tasks/*.md` (Task files, new structure)
-   - `plans/$SCOPE/idea_research.md`
    - `plans/$SCOPE/coding_convention.md`
    - `plans/$SCOPE/INSTRUCTIONS.md`
 
@@ -91,12 +90,12 @@ Output: Formatting violations list with severity
 
 ### Content Validation — `@code-reviewer`
 ```
-Read: plans/$SCOPE/$SCOPE.md, plans/$SCOPE/tasks/*.md, plans/$SCOPE/idea_research.md
+Read: plans/$SCOPE/$SCOPE.md, plans/$SCOPE/tasks/*.md
 
 IMPORTANT: You are validating ROADMAP STRUCTURE, not code. Do NOT useqa-engineer checklist.
 
 Verify:
-1. Tasks in $SCOPE.md map to goal in idea_research.md
+1. Tasks in $SCOPE.md map to the scope overview goals
 2. Task files exist in plans/$SCOPE/tasks/ directory
 3. Each task file has ## Validation Checklist section with checkboxes (- [ ])
 4. Subtasks are atomic (15 min or less)
