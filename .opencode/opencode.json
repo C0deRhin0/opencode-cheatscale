@@ -19,7 +19,8 @@
     "skills/verification-loop/SKILL.md",
     "skills/api-design/SKILL.md",
     "skills/strategic-compact/SKILL.md",
-    "skills/eval-harness/SKILL.md"
+    "skills/eval-harness/SKILL.md",
+    "skills/synthesis-roadmap-format/SKILL.md"
   ],
   "plugin": [
     "./plugins"
@@ -343,6 +344,11 @@
     }
   },
   "command": {
+    "commit-all": {
+      "description": "Detect all changes, commit each separately, then push all",
+      "template": "{file:commands/commit-all.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
+    },
     "inject": {
       "description": "Incrementally inject new requirements into the existing project roadmap",
       "template": "{file:commands/inject.md}\n\n$ARGUMENTS",
@@ -446,11 +452,6 @@
     "jira-delete": {
       "description": "Delete JIRA epic, tasks, and subtasks from a roadmap feature",
       "template": "{file:commands/jira-delete.md}\n\n$ARGUMENTS",
-      "agent": "orchestrator"
-    },
-    "commit-all": {
-      "description": "Detect all changes, commit each separately, then push all",
-      "template": "{file:commands/commit-all.md}\n\n$ARGUMENTS",
       "agent": "orchestrator"
     }
   },
