@@ -11,26 +11,29 @@ Commit all unstaged changes separately using conventional commit format, then pu
 
 ## Execution
 
-1. **Detect Changes**:
+**All git operations operate at codebase/ directory**
+
+1. **Detect All Changes**:
    ```bash
    cd codebase && git status
    ```
 
-2. **For Each Changed File/Folder**:
-   - Analyze the diff to determine change type:
-     | Type | Trigger |
-     |------|---------|
-     | `feat` | New features, adding commands/agents |
-     | `fix` | Bug fixes, improvements |
-     | `refactor` | Restructuring, renaming, updates |
-     | `docs` | Documentation, readmes |
-     | `chore` | Config, dependencies, gitignore |
-     | `style` | Formatting only |
+2. **Commit Each File SEPARATELY** (maximize commits):
+   - For EVERY single changed file, create a separate commit
+   - NEVER group multiple files together
+   - Run: `git add  && git commit -m "<type>: <description>"`
+   
+   Change type determination:
+   | Type | Trigger |
+   |------|---------|
+   | `feat` | New features, adding commands/agents |
+   | `fix` | Bug fixes, improvements |
+   | `refactor` | Restructuring, renaming, updates |
+   | `docs` | Documentation, readmes |
+   | `chore` | Config, dependencies, gitignore |
+   | `style` | Formatting only |
 
-   - Commit format: `<type>: <what changed>`
-   - Example: `git add .opencode/commands/new-cmd.md && git commit -m "feat: add new-cmd command"`
-
-3. **Push All**:
+3. **Push All Commits**:
    ```bash
    cd codebase && git push
    ```
@@ -51,10 +54,10 @@ Commit all unstaged changes separately using conventional commit format, then pu
 
 ## Rules
 
-- Commit each logical change separately
+- **MAXIMIZE commits** - Commit EACH file separately, never bundle
 - Use conventional commit format: `<type>: <description>`
-- Group related files in one commit if they represent one logical change
-- If unsure about commit type, use `refactor` as default
+- If a file has multiple logical changes, commit each change separately
+- Do NOT group related files together - more commits is better
 
 ---
 
