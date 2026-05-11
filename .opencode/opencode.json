@@ -457,5 +457,16 @@
   },
   "permission": {
     "mcp_*": "ask"
+  },
+  "provider": {
+    "opencode": {
+      "models": {
+        "minimax-m2.5-free": {
+          "options": {
+            "toolStreaming": false
+          }
+        }
+      }
+    }
   }
 }
