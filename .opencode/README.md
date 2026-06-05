@@ -1,366 +1,249 @@
-# CheatScale OpenCode Configuration
+# OpenCode CheatScale Harness
 
-> **Foundation**: Built upon [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by affaan
-> 
-> This project exists because of the excellent foundation provided by affaan. ~10% of patterns derived, 90% CheatScale additions.
+This directory contains the active OpenCode CheatScale (OCS) harness: agents, slash commands, skills, OpenCode plugin hooks, and helper scripts for wave-routed project execution.
 
----
-
-## What is CheatScale?
-
-Enterprise-grade AI development orchestration with wave-based dispatch, roadmap automation, Obsidian integration, and time-warp commit capabilities.
+For the GitHub-facing project overview, see the repository root `README.md`. This file is the operator-facing map of the `.opencode/` harness itself.
 
 ---
 
-## Installation
+## Current Structure
 
-### Quick Setup
-
-1. **Copy `.opencode` folder** to your project root:
-   ```bash
-   cp -r .opencode /path/to/your/project/
-   ```
-
-2. **Start using**:
-   ```bash
-   opencode
-   /bootstrap my-feature
-   ```
-
-That's it. No npm install needed.
-
----
-
-## What's New in CheatScale
-
-This configuration extends the foundation with:
-
-| Feature | Description |
-|---------|-------------|
-| **Wave-Based Orchestration** | 6-wave execution pattern with complexity gating |
-| **24 Specialized Agents** | Full enterprise roster (vs foundation's 14) |
-| **Roadmap Commands** | /bootstrap, /inject, /validate-roadmap |
-| **Obsidian Integration** | Auto-frontmatter for graph linking |
-| **Time-Warp Commits** | /push rewrites dates for daily contribution appearance |
-| **3-Tier Architecture** | Strict separation for AI testability |
-| **Phase Isolation** | MANDATORY STOP after each phase |
-
----
-
-## Agents (24)
-
-### Domain Writers
-| Agent | Specialty | Use For |
-|-------|-----------|---------|
-| architect | Backend systems | API, services, architecture |
-| frontend-engineer | UI/UX | Components, pages, layouts |
-| database-engineer | Schema/migrations | DB design, SQL |
-| devops-engineer | CI/CD, Docker | Pipelines, deployment |
-| integration-engineer | External APIs | Third-party integrations |
-| ml-engineer | ML/AI | Model integration |
-
-### Quality Agents
-| Agent | Specialty | Use For |
-|-------|-----------|---------|
-| code-reviewer | Code quality | All implementations |
-| security-reviewer | Vulnerabilities | Auth, sensitive code |
-| performance-reviewer | Latency | Performance-critical |
-| accessibility-reviewer | WCAG | UI components |
-| qa-engineer | Test coverage | Edge cases |
-| tdd-guide | Test-driven dev | Feature implementation |
-| e2e-runner | E2E testing | User flows |
-| build-error-resolver | Build errors | When build fails |
-
-### Utility Agents
-| Agent | Specialty |
-|-------|-----------|
-| planner | Task decomposition |
-| refactor-cleaner | Dead code |
-| doc-updater | Documentation |
-| database-reviewer | PostgreSQL/Supabase |
-
-### Wave Agents
-| Agent | Specialty |
-|-------|-----------|
-| researcher | Investigation |
-| fact-checker | Verification |
-| critic | Adversarial review |
-| reducer | Output synthesis |
-
----
-
-## Commands (24+)
-
-### Roadmap Management
-| Command | Description |
-|---------|-------------|
-| `/bootstrap` | End-to-end project bootstrap |
-| `/inject` | Add to existing roadmap |
-| `/validate-roadmap` | Adversarial roadmap review |
-| `/routine` | Execute with atomic checkpointing |
-| `/plan` | Implementation plan |
-
-### Execution
-| Command | Description |
-|---------|-------------|
-| `/execute` | Ad-hoc task execution |
-| `/tdd` | TDD workflow 80%+ |
-| `/test-coverage` | Coverage analysis |
-| `/code-review` | Quality review |
-| `/refactor-clean` | Remove dead code |
-
-### Git & Commits
-| Command | Description |
-|---------|-------------|
-| `/commit` | Stage work to queue |
-| `/push` | Time-warp push (dates appear daily) |
-| `/checkpoint` | Save progress |
-
-### Security & Quality
-| Command | Description |
-|---------|-------------|
-| `/security` | Comprehensive security |
-| `/debate` | Agent debate |
-| `/eval` | Evaluation |
-
-### Research & Analysis
-| Command | Description |
-|---------|-------------|
-| `/research` | Web search research |
-| `/sitrep` | Workspace status |
-| `/context-budget` | Token optimization |
-
-### Documentation
-| Command | Description |
-|---------|-------------|
-| `/update-docs` | Sync documentation |
-
-### Sessions
-| Command | Description |
-|---------|-------------|
-| `/sessions` | Manage history |
-| `/save-session` | Save state |
-| `/resume-session` | Resume work |
-
-### Utilities
-| Command | Description |
-|---------|-------------|
-| `/aside` | Quick side answer |
-
----
-
-## Wave-Based Orchestration
-
-```
-Phase 0: Scan & Route
-    → Classify complexity (Simple/Medium/Complex)
-    → Assign file scopes
-
-Wave 1: Knowledge (if unknowns)
-    → @researcher + @fact-checker
-
-Wave 2: Domain Writers (parallel)
-    → @architect, @frontend-engineer, @database-engineer...
-
-Wave 3: Quality (parallel)
-    → @critic, @qa-engineer, @security-reviewer...
-
-Phase: Synthesis
-    → Orchestrator writes to plans/
+```text
+.opencode/
+├── opencode.json      # Main OpenCode wiring: agents, commands, plugins, models
+├── agents/            # 25 specialist agent prompts
+├── commands/          # 30 slash command prompts
+├── skills/            # reusable instruction packs and future placeholders
+├── plugins/           # OpenCode runtime hooks
+├── scripts/           # helper scripts, JIRA sync, backdating, harness health
+├── instructions/      # global operating instructions
+├── mcp-configs/       # MCP server reference configs
+├── AGENTS.md          # agent roster and operating rules
+├── RULES.md           # wave protocols and constraints
+├── SOUL.md            # core identity and principles
+└── .mcp.json          # active local MCP servers
 ```
 
-### Complexity Gating
-
-| Level | Criteria | Agents |
-|-------|----------|--------|
-| Simple | 1 domain | 1 writer + 1 reviewer |
-| Medium | 2-3 domains | Relevant + reviewers |
-| Complex | 3+ domains | Full roster |
+The inherited upstream folders that were not part of the active local harness were removed: old hook configs, unused schemas, rule packs, contexts, extra tools, installer manifests, Rust/TUI experiments, and generated dependency folders.
 
 ---
 
-## MCP Servers (Pre-configured)
+## Core Operating Model
+
+CheatScale is built around **wave-based orchestration** and **contribution cadence control**.
+
+```text
+Phase 0: Scan and Route
+    - inspect workspace
+    - detect existing codebase
+    - classify complexity
+    - assign file scopes
+
+Wave 0.5: Codebase Ingestion, if needed
+    - architect audits stack
+    - code reviewer extracts conventions
+
+Wave 1: Knowledge, if needed
+    - researcher investigates unknowns
+    - fact-checker verifies assumptions
+
+Wave 2: Domain Work
+    - architect, frontend, database, devops, integration, ML agents as needed
+
+Wave 3: Quality Review
+    - critic, code review, security, QA, accessibility, performance as needed
+
+Phase: Synthesis or Checkpoint
+    - planning artifacts written, implementation validated, or atomic commit created
+```
+
+Agents are selected dynamically. The orchestrator should not spawn the full roster unless the task genuinely requires it.
+
+---
+
+## The CheatScale Command Chain
+
+The “cheat” is a deliberate workflow for separating real work time from visible contribution cadence.
+
+| Stage | Command | Role |
+|---|---|---|
+| Plan | `/bootstrap <feature>` | Creates `plans/$SCOPE/` with scope hub, conventions, instructions, and task files. |
+| Extend | `/inject <scope> <change>` | Adds new requirements without rewriting the roadmap. |
+| Validate | `/validate-roadmap <scope>` | Stress-tests roadmap structure, feasibility, and scope. |
+| Execute | `/routine <scope> <task>` | Runs atomic roadmapped tasks with dynamic wave routing. |
+| Queue | `/commit <scope> <task>` | Commits local work inside `codebase/` without pushing. |
+| Drip-feed | `/push [scope task]` | Pushes the oldest queued commit or task-tagged batch with date smoothing. |
+| Backfill | `/backdate <date/range>` | Creates dated commits from current changes or mock activity. |
+| Rewrite | `/redate <commits> <date/range>` | Rewrites existing commit timestamps across a target date or range. |
+
+The typical flow is:
+
+```text
+/bootstrap -> /routine -> /commit -> /push
+```
+
+For direct contribution-graph manipulation:
+
+```text
+/backdate
+/redate
+```
+
+---
+
+## Registered Agents
+
+`opencode.json` currently registers **25 agents**.
+
+| Group | Agents |
+|---|---|
+| Primary | `build`, `orchestrator` |
+| Planning/Synthesis | `planner`, `synthesis-writer`, `reducer` |
+| Domain Writers | `architect`, `frontend-engineer`, `database-engineer`, `devops-engineer`, `integration-engineer`, `ml-engineer` |
+| Quality/Review | `code-reviewer`, `security-reviewer`, `database-reviewer`, `performance-reviewer`, `accessibility-reviewer`, `qa-engineer`, `tdd-guide`, `e2e-runner`, `build-error-resolver`, `critic`, `researcher`, `fact-checker`, `refactor-cleaner`, `doc-updater` |
+
+---
+
+## Registered Commands
+
+`opencode.json` currently registers **30 commands**.
+
+```text
+/aside
+/backdate
+/bootstrap
+/checkpoint
+/code-review
+/commit
+/commit-all
+/context-budget
+/debate
+/eval
+/execute
+/harness-health
+/inject
+/jira-delete
+/jira-push
+/plan
+/push
+/redate
+/refactor-clean
+/research
+/resume-session
+/routine
+/save-session
+/security
+/sessions
+/sitrep
+/tdd
+/test-coverage
+/update-docs
+/validate-roadmap
+```
+
+---
+
+## Skills
+
+Skills live in `skills/<name>/SKILL.md`. `opencode.json` also registers `.opencode/skills` through `skills.paths`, so valid skills can be discovered by the harness.
+
+First-party/future CheatScale skills include:
+
+```text
+cheatscale-conventions
+git-backdating
+jira-mapping
+obsidian-frontmatter
+phase-zero-scan
+synthesis-roadmap-format
+```
+
+The placeholder skills are intentionally present for future expansion and should not be deleted.
+
+---
+
+## Scripts
+
+Only active helper scripts remain:
+
+```text
+scripts/backdate_helper.py
+scripts/redate_helper.py
+scripts/harness-health.cjs
+scripts/install-deps.sh
+scripts/jira-sync/
+scripts/lib/session-manager.cjs
+scripts/lib/session-aliases.cjs
+scripts/lib/utils.cjs
+```
+
+### Harness health
+
+Run after changing config, agents, commands, plugins, or skills:
+
+```bash
+/harness-health
+```
+
+or directly:
+
+```bash
+node .opencode/scripts/harness-health.cjs
+```
+
+The validator checks command registration, agent registration, file references, skill frontmatter, cleanup artifacts, and stale upstream branding.
+
+### Optional plugin development setup
+
+Normal usage does not require `node_modules/`. If you want to build or type-check the local TypeScript plugin, run:
+
+```bash
+.opencode/scripts/install-deps.sh
+```
+
+This recreates `node_modules/` and runs `npm run build` inside `.opencode/`.
+
+---
+
+## Plugin Hooks
+
+OpenCode plugin hooks live in:
+
+```text
+plugins/ocs-hooks.ts
+```
+
+Runtime toggles:
+
+```bash
+export OCS_HOOK_PROFILE=standard     # minimal | standard | strict
+export OCS_DISABLED_HOOKS="post:edit:console-warn,pre:bash:tmux-reminder"
+```
+
+Use `minimal` for low-noise sessions, `standard` for normal development, and `strict` when you want stronger reminders and checks.
+
+---
+
+## Active MCPs
+
+Active local MCPs are configured in `.mcp.json`:
 
 | Server | Purpose |
-|--------|---------|
-| github | PRs, issues, repos |
-| obsidian | Vault integration |
-| context7 | Live docs lookup |
-| exa | Neural search |
-| memory | Persistent memory |
-| playwright | Browser automation |
-| firecrawl | Web scraping |
-| supabase | Database |
-| vercel | Deployments |
-| cloudflare | Workers |
+|---|---|
+| `github` | Repository, issue, and PR workflows |
+| `context7` | Live documentation lookup |
+| `exa` | Neural web search |
+| `memory` | Persistent memory |
+| `playwright` | Browser automation |
+| `sequential-thinking` | Stepwise reasoning |
+| `obsidian` | Local vault integration |
+
+Reference MCP examples live in `mcp-configs/`.
+
+Do not commit real credentials from local MCP files unless intentionally private.
 
 ---
 
-## Skills (25+)
+## Restart Requirement
 
-Loaded by default:
-- api-design
-- backend-patterns
-- coding-standards
-- e2e-testing
-- eval-harness
-- frontend-patterns
-- frontend-slides
-- security-review
-- strategic-compact
-- tdd-workflow
-- verification-loop
-
-Additional available:
-- article-writing
-- bun-runtime
-- claude-api
-- content-engine
-- crosspost
-- deep-research
-- dmux-workflows
-- exa-search
-- fal-ai-media
-- investor-materials
-- investor-outreach
-- market-research
-- mcp-server-patterns
-- nextjs-turbopack
-
----
-
-## Project Structure
-
-```
-.opencode/
-├── agents/           # 24 AI agents
-├── commands/         # 24+ commands
-├── skills/           # 25+ skills
-├── hooks/            # Trigger automations
-├── contexts/         # Context presets
-├── mcp-configs/     # MCP server configs
-├── plugins/           # OpenCode plugins
-├── rules/             # Language rules
-├── scripts/           # Utilities
-├── schemas/          # JSON schemas
-├── opencode.json      # Main config
-├── RULES.md           # Wave protocols
-├── SOUL.md            # Core principles
-└── .mcp.json          # Active MCPs
-```
-
----
-
-## Time-Warp Commits (The Cheat)
-
-After completing multiple tasks in one session:
-
-```bash
-/routine myfeature setup-api
-/routine myfeature build-ui
-/routine myfeature write-tests
-```
-
-All tasks completed in one day. Now push with time-warp:
-
-```bash
-/push
-```
-
-GitHub sees:
-- Jan 1: Task 1
-- Jan 2: Task 2
-- Jan 3: Task 3
-
-**Appears as 3 days of work** - hence "CheatScale"
-
----
-
-## JIRA Integration
-
-CheatScale integrates seamlessly with Atlassian JIRA through the bootstrap workflow.
-
-### Bootstrap + JIRA Flow
-
-```bash
-# 1. Run bootstrap - you'll be asked 5 questions including JIRA
-/bootstrap "billing service"
-
-# Questions:
-# 1. Goal? → MVP Speed / Enterprise Scalability
-# 2. Stack? → AI Recommendation / Strict requirements
-# 3. Features? → Core Only / Full specification
-# 4. Space Name? → "Billing Service" → becomes scope: billing_service
-# 5. JIRA Project? → "BILLING_SERVICE" (or leave empty to skip)
-```
-
-### Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **User-Provided Keys** | You provide your JIRA project key directly |
-| **Project Isolation** | Each feature can go to different JIRA projects |
-| **Flexible** | Leave JIRA Project empty to skip integration |
-| **Auto-Validation** | Bootstrap verifies project exists |
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `/jira-push <scope>` | Push roadmap to JIRA (creates Epic > Tasks > Subtasks) |
-| `/jira-delete <scope>` | Delete JIRA epic and related issues |
-
-### Example
-
-```bash
-# With JIRA
-/bootstrap "billing service"
-# → Enter "BILLING_SERVICE" when asked for JIRA Project
-# → Creates roadmap in plans/billing_service/
-/jira-push billing_service
-# → Creates Epic + 4 Tasks + 33 Subtasks in BILLING_SERVICE
-
-# Without JIRA
-/bootstrap "personal site"
-# → Leave JIRA Project empty
-# → No JIRA integration, local roadmap only
-```
-
-### Frontmatter
-
-Each $SCOPE.md includes JIRA metadata:
-
-```yaml
----
-scope: billing_service
-feature: Billing Service API
-jira_project: BILLING_SERVICE   # User-provided key
-jira_epic: BILL-1              # Created by jira-push
----
-```
-
-Or without JIRA:
-
-```yaml
----
-scope: personal_site
-feature: Personal Portfolio
-jira_project: none
----
-```
-
----
-
-## License
-
-MIT
-
----
-
-## Acknowledgments
-
-**Primary Foundation**: [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by [affaan](https://github.com/affaan)
-
-This project was motivated and made possible by affaan's excellent open-source work. The foundation provided the inspiration and base patterns that CheatScale builds upon.
-
-Thank you, affaan!
+OpenCode loads config, agents, commands, skills, and plugins at startup. After editing files in this harness, restart OpenCode before expecting changes to take effect.
