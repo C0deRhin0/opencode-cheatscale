@@ -1,6 +1,6 @@
-# Everything Claude Code - OpenCode Instructions
+# OpenCode CheatScale - OpenCode Instructions
 
-This document consolidates the core rules and guidelines from the Claude Code configuration for use with OpenCode.
+This document consolidates the core rules and guidelines for the OCS OpenCode harness.
 
 ## Instruction Architecture: The Three-Tier Model (Smart Loader)
 
@@ -369,15 +369,15 @@ interface Repository<T> {
 
 ## OpenCode-Specific Notes
 
-OpenCode hooks are active via the plugin system (`plugins/ecc-hooks.ts`). The following are automated on file edits and pre-commit events but can also be run manually at any time:
+OpenCode hooks are active via the plugin system (`plugins/ocs-hooks.ts`). The following are automated on file edits and pre-commit events but can also be run manually at any time:
 
-### After Writing/Editing Code (automated via ecc-hooks)
+### After Writing/Editing Code (automated via OCS hooks)
 - Prettier auto-formats JS/TS files on `file.edited` events
 - TypeScript type-check runs automatically after `.ts`/`.tsx` file edits
 - console.log warnings surface on file save
 - To run manually: `prettier --write <file>` and `npx tsc --noEmit`
 
-### Before Committing (automated via ecc-hooks)
+### Before Committing (automated via OCS hooks)
 - Security secret-check runs before commit
 - To run manually: `npm test` and verify no secrets are present
 

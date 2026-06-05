@@ -1,33 +1,32 @@
 /**
- * Everything Claude Code (ECC) Plugin for OpenCode
+ * OpenCode CheatScale (OCS) Plugin for OpenCode
  *
- * This package provides the published ECC OpenCode plugin module:
+ * This package provides the OCS OpenCode plugin module:
  * - Plugin hooks (auto-format, TypeScript check, console.log warning, env injection, etc.)
- * - Custom tools (run-tests, check-coverage, security-audit, format-code, lint-check, git-summary)
- * - Bundled reference config/assets for the wider ECC OpenCode setup
+ * - Bundled reference config/assets for the wider OCS OpenCode setup
  *
  * Usage:
  *
  * Option 1: Install via npm
  * ```bash
- * npm install ecc-universal
+ * npm install ocs-universal
  * ```
  *
  * Then add to your opencode.json:
  * ```json
  * {
- *   "plugin": ["ecc-universal"]
+ *   "plugin": ["ocs-universal"]
  * }
  * ```
  *
- * That enables the published plugin module only. For ECC commands, agents,
+ * That enables the published plugin module only. For OCS commands, agents,
  * prompts, and instructions, use this repository's `.opencode/opencode.json`
  * as a base or copy the bundled `.opencode/` assets into your project.
  *
  * Option 2: Clone and use directly
  * ```bash
- * git clone https://github.com/affaan-m/everything-claude-code
- * cd everything-claude-code
+ * git clone <your-ocs-repository-url>
+ * cd <your-ocs-repository>
  * opencode
  * ```
  *
@@ -35,24 +34,24 @@
  */
 
 // Export the main plugin
-export { ECCHooksPlugin, default } from "./plugins/index.js"
+export { OCSHooksPlugin, default } from "./plugins/index.js"
 
 // Export individual components for selective use
 export * from "./plugins/index.js"
 
 // Version export
-export const VERSION = "1.6.0"
+export const VERSION = "1.9.0"
 
 // Plugin metadata
 export const metadata = {
-  name: "ecc-universal",
+  name: "ocs-universal",
   version: VERSION,
-  description: "Everything Claude Code plugin for OpenCode",
-  author: "affaan-m",
+  description: "OpenCode CheatScale plugin for OpenCode",
+  author: "C0deRhin0",
   features: {
-    agents: 13,
-    commands: 31,
-    skills: 37,
+    agents: 25,
+    commands: 29,
+    skills: 39,
     configAssets: true,
     hookEvents: [
       "file.edited",
@@ -67,13 +66,6 @@ export const metadata = {
       "shell.env",
       "experimental.session.compacting",
     ],
-    customTools: [
-      "run-tests",
-      "check-coverage",
-      "security-audit",
-      "format-code",
-      "lint-check",
-      "git-summary",
-    ],
+    customTools: [],
   },
 }
