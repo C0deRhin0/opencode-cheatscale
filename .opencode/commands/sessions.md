@@ -4,7 +4,7 @@ description: Manage OpenCode session history, aliases, and session metadata.
 
 # Sessions Command
 
-Manage OpenCode session history - list, load, alias, and edit sessions stored in `~/.opencode/sessions/`.
+Manage OpenCode session history - list, load, alias, and edit sessions stored in `~/.opencode/session-data/` with legacy read fallback from `~/.opencode/sessions/`.
 
 ## Usage
 
@@ -29,8 +29,8 @@ Use `/sessions info` when you need operator-surface context for a swarm: branch,
 **Script:**
 ```bash
 node -e "
-const sm = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
+const sm = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager.cjs');
+const aa = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases.cjs');
 const path = require('path');
 
 const result = sm.getAllSessions({ limit: 20 });
@@ -44,7 +44,7 @@ console.log('ID        Date        Time     Branch       Worktree           Alia
 console.log('');
 
 for (const s of result.sessions) {
-  const alias = aliasMap[s.filename] || '';
+  const alias = aliasMap[s.sessionPath] || '';
   const metadata = sm.parseSessionMetadata(sm.getSessionContent(s.sessionPath));
   const id = s.shortId === 'no-id' ? '(none)' : s.shortId.slice(0, 8);
   const time = s.modifiedTime.toTimeString().slice(0, 5);
@@ -70,8 +70,8 @@ Load and display a session's content (by ID or alias).
 **Script:**
 ```bash
 node -e "
-const sm = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
+const sm = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager.cjs');
+const aa = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases.cjs');
 const id = process.argv[1];
 
 // First try to resolve as alias
@@ -143,8 +143,8 @@ Create a memorable alias for a session.
 **Script:**
 ```bash
 node -e "
-const sm = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
+const sm = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager.cjs');
+const aa = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases.cjs');
 
 const sessionId = process.argv[1];
 const aliasName = process.argv[2];
@@ -154,14 +154,14 @@ if (!sessionId || !aliasName) {
   process.exit(1);
 }
 
-// Get session filename
+// Get session path
 const session = sm.getSessionById(sessionId);
 if (!session) {
   console.log('Session not found: ' + sessionId);
   process.exit(1);
 }
 
-const result = aa.setAlias(aliasName, session.filename);
+const result = aa.setAlias(aliasName, session.sessionPath);
 if (result.success) {
   console.log(' Alias created: ' + aliasName + '  ' + session.filename);
 } else {
@@ -183,7 +183,7 @@ Delete an existing alias.
 **Script:**
 ```bash
 node -e "
-const aa = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
+const aa = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases.cjs');
 
 const aliasName = process.argv[1];
 if (!aliasName) {
@@ -212,8 +212,8 @@ Show detailed information about a session.
 **Script:**
 ```bash
 node -e "
-const sm = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager');
-const aa = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
+const sm = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-manager.cjs');
+const aa = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases.cjs');
 
 const id = process.argv[1];
 const resolved = aa.resolveAlias(id);
@@ -262,7 +262,7 @@ Show all session aliases.
 **Script:**
 ```bash
 node -e "
-const aa = require((()=>{var e=process.env.OPENCODE_ECC_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.js');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases');
+const aa = require((()=>{var e=process.env.OPENCODE_OCS_ROOT;if(e&&e.trim())return e.trim();var p=require('path'),f=require('fs'),h=require('os').homedir(),d=p.join(process.cwd(),'.opencode'),q=p.join('scripts','lib','utils.cjs');if(f.existsSync(p.join(d,q)))return d;try{var b=p.join(d,'.opencode','scripts');for(var o of f.readdirSync(b))for(var v of f.readdirSync(p.join(b,o))){var c=p.join(b,o,v);if(f.existsSync(p.join(c,q)))return c}}catch(x){}return d})()+'/scripts/lib/session-aliases.cjs');
 
 const aliases = aa.listAliases();
 console.log('Session Aliases (' + aliases.length + '):');
@@ -328,6 +328,6 @@ $ARGUMENTS:
 ## Notes
 
 - Sessions are stored as markdown files in `~/.opencode/sessions/` with legacy reads from `~/.opencode/sessions/`
-- Aliases are stored in `~/.claude/~/.opencode/session-aliases.json`
+- Aliases are stored in `~/.opencode/session-aliases.json`
 - Session IDs can be shortened (first 4-8 characters usually unique enough)
 - Use aliases for frequently referenced sessions
