@@ -1,6 +1,6 @@
-Everything Claude Code (ECC)  Agent Instructions
+OpenCode CheatScale (OCS) Agent Instructions
 
-This is a **production-ready AI coding plugin** providing 20 specialized agents, 25+ commands, and automated hook workflows for software development.
+This is a **production-ready OpenCode harness** providing specialized agents, commands, skills, and automated hook workflows for software development.
 
 **Version:** 1.9.0
 
