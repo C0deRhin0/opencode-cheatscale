@@ -1,7 +1,7 @@
 {
-  "name": "ecc-universal",
+  "name": "ocs-universal",
   "version": "1.9.0",
-  "description": "Everything Claude Code (ECC) plugin for OpenCode - agents, commands, hooks, and skills",
+  "description": "OpenCode CheatScale (OCS) plugin for OpenCode - agents, commands, hooks, and skills",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -13,10 +13,6 @@
     "./plugins": {
       "types": "./dist/plugins/index.d.ts",
       "import": "./dist/plugins/index.js"
-    },
-    "./tools": {
-      "types": "./dist/tools/index.d.ts",
-      "import": "./dist/tools/index.js"
     }
   },
   "files": [
@@ -24,26 +20,22 @@
     "commands",
     "instructions",
     "opencode.json",
+    "CHANGELOG.md",
     "README.md",
     "AGENTS.md",
     "RULES.md",
     "SOUL.md",
     ".mcp.json",
     "agents",
-    "hooks",
-    "rules",
     "scripts",
     "mcp-configs",
-    "contexts",
-    "manifests",
-    "ecc2",
-    "schemas",
-    "brain",
     "skills"
   ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
+    "health": "node scripts/harness-health.cjs",
+    "install:verify": "bash scripts/install-deps.sh",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -51,22 +43,22 @@
     "plugin",
     "claude-code",
     "agents",
-    "ecc",
+    "ocs",
     "ai-coding",
     "developer-tools",
     "hooks",
     "automation"
   ],
-  "author": "affaan-m",
+  "author": "C0deRhin0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/affaan-m/everything-claude-code.git"
+    "url": "git+https://github.com/C0deRhin0/ocs-universal.git"
   },
   "bugs": {
-    "url": "https://github.com/affaan-m/everything-claude-code/issues"
+    "url": "https://github.com/C0deRhin0/ocs-universal/issues"
   },
-  "homepage": "https://github.com/affaan-m/everything-claude-code#readme",
+  "homepage": "https://github.com/C0deRhin0/ocs-universal#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -78,6 +70,6 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "1.4.8"
+    "@opencode-ai/plugin": "1.15.13"
   }
 }

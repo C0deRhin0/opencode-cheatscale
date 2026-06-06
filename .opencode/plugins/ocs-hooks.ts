@@ -1,9 +1,9 @@
 /**
- * Everything Claude Code (ECC) Plugin Hooks for OpenCode
+ * OpenCode CheatScale (OCS) Plugin Hooks for OpenCode
  *
- * This plugin translates Claude Code hooks to OpenCode's plugin system.
- * OpenCode's plugin system is MORE sophisticated than Claude Code with 20+ events
- * compared to Claude Code's 3 phases (PreToolUse, PostToolUse, Stop).
+ * This plugin translates hook behavior to OpenCode's plugin system.
+ * OpenCode's plugin system provides event hooks for tool execution, file edits,
+ * session lifecycle events, permission prompts, shell environment injection, and compaction.
  *
  * Hook Event Mapping:
  * - PreToolUse → tool.execute.before
@@ -15,7 +15,7 @@
 
 import type { PluginInput } from "@opencode-ai/plugin"
 
-export const ECCHooksPlugin = async ({
+export const OCSHooksPlugin = async ({
   client,
   $,
   directory,
@@ -28,16 +28,16 @@ export const ECCHooksPlugin = async ({
 
   // Helper to call the SDK's log API with correct signature
   const log = (level: "debug" | "info" | "warn" | "error", message: string) =>
-    client.app.log({ body: { service: "ecc", level, message } })
+    client.app.log({ body: { service: "ocs", level, message } })
 
   const normalizeProfile = (value: string | undefined): HookProfile => {
     if (value === "minimal" || value === "strict") return value
     return "standard"
   }
 
-  const currentProfile = normalizeProfile(process.env.ECC_HOOK_PROFILE)
+  const currentProfile = normalizeProfile(process.env.OCS_HOOK_PROFILE)
   const disabledHooks = new Set(
-    (process.env.ECC_DISABLED_HOOKS || "")
+    (process.env.OCS_DISABLED_HOOKS || "")
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean)
@@ -67,7 +67,7 @@ export const ECCHooksPlugin = async ({
   return {
     /**
      * Prettier Auto-Format Hook
-     * Equivalent to Claude Code PostToolUse hook for prettier
+      * Post-edit formatting hook
      *
      * Triggers: After any JS/TS/JSX/TSX file is edited
      * Action: Runs prettier --write on the file
@@ -80,7 +80,7 @@ export const ECCHooksPlugin = async ({
       if (hookEnabled("post:edit:format", ["strict"]) && event.path.match(/\.(ts|tsx|js|jsx)$/)) {
         try {
           await $`prettier --write ${event.path} 2>/dev/null`
-          log("info", `[ECC] Formatted: ${event.path}`)
+          log("info", `[OCS] Formatted: ${event.path}`)
         } catch {
           // Prettier not installed or failed - silently continue
         }
@@ -94,7 +94,7 @@ export const ECCHooksPlugin = async ({
             const lines = result.trim().split("\n").length
             log(
               "warn",
-              `[ECC] console.log found in ${event.path} (${lines} occurrence${lines > 1 ? "s" : ""})`
+              `[OCS] console.log found in ${event.path} (${lines} occurrence${lines > 1 ? "s" : ""})`
             )
           }
         } catch {
@@ -105,7 +105,7 @@ export const ECCHooksPlugin = async ({
 
     /**
      * TypeScript Check Hook
-     * Equivalent to Claude Code PostToolUse hook for tsc
+      * Post-edit TypeScript check hook
      *
      * Triggers: After edit tool completes on .ts/.tsx files
      * Action: Runs tsc --noEmit to check for type errors
@@ -122,10 +122,10 @@ export const ECCHooksPlugin = async ({
       ) {
         try {
           await $`npx tsc --noEmit 2>&1`
-          log("info", "[ECC] TypeScript check passed")
+          log("info", "[OCS] TypeScript check passed")
         } catch (error: unknown) {
           const err = error as { stdout?: string }
-          log("warn", "[ECC] TypeScript errors detected:")
+          log("warn", "[OCS] TypeScript errors detected:")
           if (err.stdout) {
             // Log first few errors
             const errors = err.stdout.split("\n").slice(0, 5)
@@ -140,13 +140,13 @@ export const ECCHooksPlugin = async ({
         input.tool === "bash" &&
         input.args?.toString().includes("gh pr create")
       ) {
-        log("info", "[ECC] PR created - check GitHub Actions status")
+        log("info", "[OCS] PR created - check GitHub Actions status")
       }
     },
 
     /**
      * Pre-Tool Security Check
-     * Equivalent to Claude Code PreToolUse hook
+      * Pre-tool security check
      *
      * Triggers: Before tool execution
      * Action: Warns about potential security issues
@@ -162,7 +162,7 @@ export const ECCHooksPlugin = async ({
       ) {
         log(
           "info",
-          "[ECC] Remember to review changes before pushing: git diff origin/main...HEAD"
+          "[OCS] Remember to review changes before pushing: git diff origin/main...HEAD"
         )
       }
 
@@ -183,7 +183,7 @@ export const ECCHooksPlugin = async ({
         ) {
           log(
             "warn",
-            `[ECC] Creating ${filePath} - consider if this documentation is necessary`
+            `[OCS] Creating ${filePath} - consider if this documentation is necessary`
           )
         }
       }
@@ -198,7 +198,7 @@ export const ECCHooksPlugin = async ({
         ) {
           log(
             "info",
-            "[ECC] Long-running command detected - consider using background execution"
+            "[OCS] Long-running command detected - consider using background execution"
           )
         }
       }
@@ -206,7 +206,7 @@ export const ECCHooksPlugin = async ({
 
     /**
      * Session Created Hook
-     * Equivalent to Claude Code SessionStart hook
+     * Session start hook
      *
      * Triggers: When a new session starts
      * Action: Loads context and displays welcome message
@@ -214,22 +214,22 @@ export const ECCHooksPlugin = async ({
     "session.created": async () => {
       if (!hookEnabled("session:start", ["minimal", "standard", "strict"])) return
 
-      log("info", `[ECC] Session started - profile=${currentProfile}`)
+      log("info", `[OCS] Session started - profile=${currentProfile}`)
 
       // Check for project-specific context files
       try {
-        const hasClaudeMd = await $`test -f ${worktree}/CLAUDE.md && echo "yes"`.text()
-        if (hasClaudeMd.trim() === "yes") {
-          log("info", "[ECC] Found CLAUDE.md - loading project context")
+        const hasAgentsMd = await $`test -f ${worktree}/AGENTS.md && echo "yes"`.text()
+        if (hasAgentsMd.trim() === "yes") {
+          log("info", "[OCS] Found AGENTS.md - loading project context")
         }
       } catch {
-        // No CLAUDE.md found
+        // No AGENTS.md found
       }
     },
 
     /**
      * Session Idle Hook
-     * Equivalent to Claude Code Stop hook
+      * Session idle hook
      *
      * Triggers: When session becomes idle (task completed)
      * Action: Runs console.log audit on all edited files
@@ -241,7 +241,7 @@ export const ECCHooksPlugin = async ({
       // --- ROADMAP QUALITY GATE ---
       const roadmapPath = Array.from(editedFiles).find(f => f.includes("plan/roadmap.md"));
       if (roadmapPath) {
-        log("info", "[ECC] Running Automated Quality Gate on roadmap.md");
+        log("info", "[OCS] Running Automated Quality Gate on roadmap.md");
         try {
           // Read the physical file content written by the AI
           const content = await $`cat ${roadmapPath}`.text();
@@ -274,7 +274,7 @@ export const ECCHooksPlugin = async ({
         }
       }
 
-      log("info", "[ECC] Session idle - running console.log audit")
+      log("info", "[OCS] Session idle - running console.log audit")
 
       let totalConsoleLogCount = 0
       const filesWithConsoleLogs: string[] = []
@@ -297,19 +297,19 @@ export const ECCHooksPlugin = async ({
       if (totalConsoleLogCount > 0) {
         log(
           "warn",
-          `[ECC] Audit: ${totalConsoleLogCount} console.log statement(s) in ${filesWithConsoleLogs.length} file(s)`
+          `[OCS] Audit: ${totalConsoleLogCount} console.log statement(s) in ${filesWithConsoleLogs.length} file(s)`
         )
         filesWithConsoleLogs.forEach((f) =>
           log("warn", `  - ${f}`)
         )
-        log("warn", "[ECC] Remove console.log statements before committing")
+        log("warn", "[OCS] Remove console.log statements before committing")
       } else {
-        log("info", "[ECC] Audit passed: No console.log statements found")
+        log("info", "[OCS] Audit passed: No console.log statements found")
       }
 
       // Desktop notification (macOS)
       try {
-        await $`osascript -e 'display notification "Task completed!" with title "OpenCode ECC"' 2>/dev/null`
+        await $`osascript -e 'display notification "Task completed!" with title "OpenCode CheatScale"' 2>/dev/null`
       } catch {
         // Notification not supported or failed
       }
@@ -320,14 +320,14 @@ export const ECCHooksPlugin = async ({
 
     /**
      * Session Deleted Hook
-     * Equivalent to Claude Code SessionEnd hook
+      * Session end hook
      *
      * Triggers: When session ends
      * Action: Final cleanup and state saving
      */
     "session.deleted": async () => {
       if (!hookEnabled("session:end-marker", ["minimal", "standard", "strict"])) return
-      log("info", "[ECC] Session ended - cleaning up")
+      log("info", "[OCS] Session ended - cleaning up")
       editedFiles.clear()
     },
 
@@ -355,7 +355,7 @@ export const ECCHooksPlugin = async ({
       const completed = event.todos.filter((t) => t.done).length
       const total = event.todos.length
       if (total > 0) {
-        log("info", `[ECC] Progress: ${completed}/${total} tasks completed`)
+        log("info", `[OCS] Progress: ${completed}/${total} tasks completed`)
       }
     },
 
@@ -364,14 +364,14 @@ export const ECCHooksPlugin = async ({
      * OpenCode-specific: Inject environment variables into shell commands
      *
      * Triggers: Before shell command execution
-     * Action: Sets PROJECT_ROOT, PACKAGE_MANAGER, DETECTED_LANGUAGES, ECC_VERSION
+     * Action: Sets PROJECT_ROOT, PACKAGE_MANAGER, DETECTED_LANGUAGES, OCS_VERSION
      */
     "shell.env": async () => {
       const env: Record<string, string> = {
-        ECC_VERSION: "1.8.0",
-        ECC_PLUGIN: "true",
-        ECC_HOOK_PROFILE: currentProfile,
-        ECC_DISABLED_HOOKS: process.env.ECC_DISABLED_HOOKS || "",
+        OCS_VERSION: "1.9.0",
+        OCS_PLUGIN: "true",
+        OCS_HOOK_PROFILE: currentProfile,
+        OCS_DISABLED_HOOKS: process.env.OCS_DISABLED_HOOKS || "",
         PROJECT_ROOT: worktree || directory,
       }
 
@@ -422,13 +422,13 @@ export const ECCHooksPlugin = async ({
      * OpenCode-specific: Control context compaction behavior
      *
      * Triggers: Before context compaction
-     * Action: Push ECC context block and custom compaction prompt
+     * Action: Push OCS context block and custom compaction prompt
      */
     "experimental.session.compacting": async () => {
       const contextBlock = [
-        "# ECC Context (preserve across compaction)",
+        "# OCS Context (preserve across compaction)",
         "",
-        "## Active Plugin: Everything Claude Code v1.8.0",
+        "## Active Plugin: OpenCode CheatScale v1.9.0",
         "- Hooks: file.edited, tool.execute.before/after, session.created/idle/deleted, shell.env, compacting, permission.ask",
         "- Tools: run-tests, check-coverage, security-audit, format-code, lint-check, git-summary",
         "- Agents: 10 specialized (planner, architect, tdd-guide, code-reviewer, security-reviewer, build-error-resolver, e2e-runner, refactor-cleaner, doc-updater, database-reviewer)",
@@ -463,7 +463,7 @@ export const ECCHooksPlugin = async ({
      * Action: Auto-approve reads, formatters, and test commands; log all for audit
      */
     "permission.ask": async (event: { tool: string; args: unknown }) => {
-      log("info", `[ECC] Permission requested for: ${event.tool}`)
+      log("info", `[OCS] Permission requested for: ${event.tool}`)
 
       const cmd = String((event.args as Record<string, unknown>)?.command || event.args || "")
 
@@ -488,4 +488,4 @@ export const ECCHooksPlugin = async ({
   }
 }
 
-export default ECCHooksPlugin
+export default OCSHooksPlugin
