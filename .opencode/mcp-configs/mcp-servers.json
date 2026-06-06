@@ -3,10 +3,10 @@
     "obsidian": {
       "command": "obsidian-mcp-server",
       "env": {
-        "OBSIDIAN_API_KEY": "YOUR_OBSIDIAN_KEY_HERE",
+        "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
         "OBSIDIAN_HOST": "127.0.0.1",
         "OBSIDIAN_PORT": "27124",
-        "OBSIDIAN_VAULT_PATH": "YOUR_PATH_HERE"
+        "OBSIDIAN_VAULT_PATH": "/Users/C0deRhin0/Documents/Dev/try/plans"
       },
       "description": "Obsidian vault operations - create notes, add frontmatter, query vault"
     },

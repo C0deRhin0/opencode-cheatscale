@@ -1,10 +1,10 @@
 {
-  "$schema": "./schemas/plugin.schema.json",
-  "model": "opencode/minimax-m2.5-free",
-  "small_model": "opencode/minimax-m2.5-free",
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openai/gpt-5.5",
+  "small_model": "openai/gpt-5.4-mini-fast",
   "default_agent": "build",
   "instructions": [
-    ".opencode/agents/orchestrator.md",
+    "agents/orchestrator.md",
     "AGENTS.md",
     "RULES.md",
     "SOUL.md",
@@ -20,16 +20,22 @@
     "skills/api-design/SKILL.md",
     "skills/strategic-compact/SKILL.md",
     "skills/eval-harness/SKILL.md",
-    "skills/synthesis-roadmap-format/SKILL.md"
+    "skills/synthesis-roadmap-format/SKILL.md",
+    "skills/git-backdating/SKILL.md"
   ],
   "plugin": [
     "./plugins"
   ],
+  "skills": {
+    "paths": [
+      ".opencode/skills"
+    ]
+  },
   "agent": {
     "orchestrator": {
       "description": "Root Supervisor and Entry Point for large project workflows.",
       "mode": "primary",
-      "model": "opencode/minimax-m2.5-free",
+      "model": "openai/gpt-5.5",
       "prompt": "1. ROOT ANCHORING: Always anchor yourself in the conversation root. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plan/`. {file:agents/orchestrator.md}",
       "tools": {
         "read": true,
@@ -42,7 +48,7 @@
     "reducer": {
       "description": "Output synthesis specialist for merging parallel task results.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/reducer.md}",
       "tools": {
         "read": true,
@@ -54,7 +60,7 @@
     "build": {
       "description": "Primary coding agent for development work",
       "mode": "primary",
-      "model": "opencode/minimax-m2.5-free",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/build.md}",
       "tools": {
         "write": true,
@@ -67,7 +73,7 @@
     "planner": {
       "description": "Pure task decomposition specialist. Analyzes complex requirements and breaks them into atomic, executable steps for domain specialists. NEVER writes code.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/planner.md}",
       "tools": {
         "read": true,
@@ -80,7 +86,7 @@
     "architect": {
       "description": "Software architecture specialist for system design, scalability, and technical decision-making.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "1. ROOT ANCHORING: Immediately verify your root directory. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plan/` (especially `roadmap.md` and `INSTRUCTIONS.md`). You are not permitted to provide architectural guidance until this context is synchronized. {file:agents/architect.md}",
       "tools": {
         "read": true,
@@ -93,7 +99,7 @@
     "code-reviewer": {
       "description": "Expert code review specialist. Reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/code-reviewer.md}",
       "tools": {
         "read": true,
@@ -105,7 +111,7 @@
     "security-reviewer": {
       "description": "Security vulnerability detection and remediation specialist. Use after writing code that handles user input, authentication, API endpoints, or sensitive data.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/security-reviewer.md}",
       "tools": {
         "read": true,
@@ -117,7 +123,7 @@
     "tdd-guide": {
       "description": "Test-Driven Development specialist enforcing write-tests-first methodology. Use when writing new features, fixing bugs, or refactoring code. Ensures 80%+ test coverage.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/tdd-guide.md}",
       "tools": {
         "read": true,
@@ -129,7 +135,7 @@
     "build-error-resolver": {
       "description": "Build and TypeScript error resolution specialist. Use when build fails or type errors occur. Fixes build/type errors only with minimal diffs.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/build-error-resolver.md}",
       "tools": {
         "read": true,
@@ -141,7 +147,7 @@
     "e2e-runner": {
       "description": "End-to-end testing specialist using Playwright. Generates, maintains, and runs E2E tests for critical user flows.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/e2e-runner.md}",
       "tools": {
         "read": true,
@@ -153,7 +159,7 @@
     "doc-updater": {
       "description": "Documentation and codemap specialist. Use for updating codemaps and documentation.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/doc-updater.md}",
       "tools": {
         "read": true,
@@ -165,7 +171,7 @@
     "refactor-cleaner": {
       "description": "Dead code cleanup and consolidation specialist. Use for removing unused code, duplicates, and refactoring.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/refactor-cleaner.md}",
       "tools": {
         "read": true,
@@ -177,7 +183,7 @@
     "database-reviewer": {
       "description": "PostgreSQL database specialist for query optimization, schema design, security, and performance. Incorporates Supabase best practices.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/database-reviewer.md}",
       "tools": {
         "read": true,
@@ -189,7 +195,7 @@
     "critic": {
       "description": "Enterprise adversarial reviewer. Stress-tests proposals, plans, code, and architecture for edge cases, security flaws, architectural debt, and hidden risks.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/critic.md}",
       "tools": {
         "read": true,
@@ -202,7 +208,7 @@
     "researcher": {
       "description": "General-purpose research specialist with broad knowledge spanning technical and non-technical domains.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/researcher.md}",
       "tools": {
         "read": true,
@@ -215,7 +221,7 @@
     "fact-checker": {
       "description": "Unbiased verification specialist who looks for hallucinations, inaccuracies, and outdated information.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/fact-checker.md}",
       "tools": {
         "read": true,
@@ -228,7 +234,7 @@
     "frontend-engineer": {
       "description": "Frontend implementation specialist. Writes UI components, layouts, pages, and ensures design system compliance.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/frontend-engineer.md}",
       "tools": {
         "read": true,
@@ -241,7 +247,7 @@
     "database-engineer": {
       "description": "Database specialist for schema design, query optimization, migrations, and data modeling.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/database-engineer.md}",
       "tools": {
         "read": true,
@@ -254,7 +260,7 @@
     "devops-engineer": {
       "description": "DevOps and infrastructure specialist. Manages CI/CD pipelines, Docker containers, and deployment configurations.",
       "mode": "subagent",
-      "model": "github-copilot/gpt-5.2-codex",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/devops-engineer.md}",
       "tools": {
         "read": true,
@@ -267,7 +273,7 @@
     "integration-engineer": {
       "description": "Third-party integration specialist. Implements external API connections, webhooks, and service connectors.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/integration-engineer.md}",
       "tools": {
         "read": true,
@@ -280,7 +286,7 @@
     "ml-engineer": {
       "description": "Machine learning engineer for model integration, embeddings, inference pipelines, and AI-powered features.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.5",
       "prompt": "{file:agents/ml-engineer.md}",
       "tools": {
         "read": true,
@@ -293,7 +299,7 @@
     "performance-reviewer": {
       "description": "Performance specialist for identifying bottlenecks, memory issues, latency problems, and optimization opportunities.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/performance-reviewer.md}",
       "tools": {
         "read": true,
@@ -306,7 +312,7 @@
     "accessibility-reviewer": {
       "description": "WCAG compliance specialist for ensuring digital accessibility.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/accessibility-reviewer.md}",
       "tools": {
         "read": true,
@@ -319,7 +325,7 @@
     "qa-engineer": {
       "description": "Quality assurance specialist for test coverage, edge case identification, and regression detection.",
       "mode": "subagent",
-      "model": "github-copilot/gemini-3.1-pro-preview",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/qa-engineer.md}",
       "tools": {
         "read": true,
@@ -332,7 +338,7 @@
     "synthesis-writer": {
       "description": "Synthesis writer for bootstrap roadmap generation. Writes planning artifacts in parallel during the Synthesis phase.",
       "mode": "subagent",
-      "model": "opencode/minimax-m2.5-free",
+      "model": "openai/gpt-5.4-mini-fast",
       "prompt": "{file:agents/synthesis-writer.md}",
       "tools": {
         "read": true,
@@ -407,6 +413,41 @@
       "template": "{file:commands/sitrep.md}\n\n$ARGUMENTS",
       "agent": "orchestrator"
     },
+    "aside": {
+      "description": "Answer a quick side question without interrupting the current task",
+      "template": "{file:commands/aside.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "context-budget": {
+      "description": "Analyze context window usage and optimization opportunities",
+      "template": "{file:commands/context-budget.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
+    },
+    "eval": {
+      "description": "Run evaluation against acceptance criteria",
+      "template": "{file:commands/eval.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "resume-session": {
+      "description": "Load the most recent session file and resume with full context",
+      "template": "{file:commands/resume-session.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "save-session": {
+      "description": "Save current session state to a dated resumable file",
+      "template": "{file:commands/save-session.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "sessions": {
+      "description": "Manage OpenCode session history, aliases, and session metadata",
+      "template": "{file:commands/sessions.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "harness-health": {
+      "description": "Validate OpenCode CheatScale harness wiring and cleanup state",
+      "template": "{file:commands/harness-health.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
     "push": {
       "description": "Run automated DevOps overhead and contribution drip-feeder",
       "template": "{file:commands/push.md}\n\n$ARGUMENTS",
@@ -453,6 +494,16 @@
       "description": "Delete JIRA epic, tasks, and subtasks from a roadmap feature",
       "template": "{file:commands/jira-delete.md}\n\n$ARGUMENTS",
       "agent": "orchestrator"
+    },
+    "backdate": {
+      "description": "Populate empty contribution days in a GitHub profile graph with backdated commits",
+      "template": "{file:commands/backdate.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
+    },
+    "redate": {
+      "description": "Rewrite timestamps of commits already in git history, spreading them across a target date or range",
+      "template": "{file:commands/redate.md}\n\n$ARGUMENTS",
+      "agent": "orchestrator"
     }
   },
   "permission": {
@@ -461,7 +512,7 @@
   "provider": {
     "opencode": {
       "models": {
-        "minimax-m2.5-free": {
+        "openai/gpt-5.5": {
           "options": {
             "toolStreaming": false
           }
