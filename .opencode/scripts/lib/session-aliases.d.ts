@@ -1,6 +1,6 @@
 /**
- * Session Aliases Library for Claude Code.
- * Manages named aliases for session files, stored in ~/.claude/session-aliases.json.
+ * Session Aliases Library for OpenCode CheatScale.
+ * Manages named aliases for session files, stored in ~/.opencode/session-aliases.json.
  */
 
 /** Internal alias storage entry */

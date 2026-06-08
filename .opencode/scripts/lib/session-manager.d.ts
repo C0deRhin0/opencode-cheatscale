@@ -1,7 +1,7 @@
 /**
- * Session Manager Library for Claude Code.
+ * Session Manager Library for OpenCode CheatScale.
  * Provides CRUD operations for session files stored as markdown in
- * ~/.claude/session-data/ with legacy read compatibility for ~/.claude/sessions/.
+ * ~/.opencode/session-data/ with legacy read compatibility for ~/.opencode/sessions/.
  */
 
 /** Parsed metadata from a session filename */
@@ -22,6 +22,9 @@ export interface SessionMetadata {
   date: string | null;
   started: string | null;
   lastUpdated: string | null;
+  project: string | null;
+  branch: string | null;
+  worktree: string | null;
   completed: string[];
   inProgress: string[];
   notes: string;
