@@ -1,5 +1,5 @@
 /**
- * Cross-platform utility functions for Claude Code hooks and scripts.
+ * Cross-platform utility functions for OpenCode CheatScale scripts.
  * Works on Windows, macOS, and Linux.
  */
 
@@ -15,19 +15,19 @@ export const isLinux: boolean;
 /** Get the user's home directory (cross-platform) */
 export function getHomeDir(): string;
 
-/** Get the Claude config directory (~/.claude) */
-export function getClaudeDir(): string;
+/** Get the OpenCode config directory (~/.opencode) */
+export function getOpenCodeDir(): string;
 
-/** Get the canonical ECC sessions directory (~/.claude/session-data) */
+/** Get the canonical OCS sessions directory (~/.opencode/session-data) */
 export function getSessionsDir(): string;
 
-/** Get the legacy Claude-managed sessions directory (~/.claude/sessions) */
+/** Get the legacy OCS sessions directory (~/.opencode/sessions) */
 export function getLegacySessionsDir(): string;
 
 /** Get session directories to search, with canonical storage first and legacy fallback second */
 export function getSessionSearchDirs(): string[];
 
-/** Get the learned skills directory (~/.claude/skills/learned) */
+/** Get the learned skills directory (~/.opencode/skills/learned) */
 export function getLearnedSkillsDir(): string;
 
 /** Get the temp directory (cross-platform) */
@@ -61,7 +61,7 @@ export function getDateTimeString(): string;
 export function sanitizeSessionId(raw: string | null | undefined): string | null;
 
 /**
- * Get short session ID from CLAUDE_SESSION_ID environment variable.
+ * Get short session ID from OPENCODE_SESSION_ID environment variable.
  * Returns last 8 characters, falls back to a sanitized project name then the provided fallback.
  */
 export function getSessionIdShort(fallback?: string): string;
@@ -158,10 +158,10 @@ export interface ReadStdinJsonOptions {
  */
 export function readStdinJson(options?: ReadStdinJsonOptions): Promise<Record<string, unknown>>;
 
-/** Log a message to stderr (visible to user in Claude Code terminal) */
+/** Log a message to stderr (visible to user in the terminal) */
 export function log(message: string): void;
 
-/** Output data to stdout (returned to Claude's context) */
+/** Output data to stdout (returned to the active harness context) */
 export function output(data: string | Record<string, unknown>): void;
 
 // --- System ---

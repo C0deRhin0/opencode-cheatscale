@@ -1,5 +1,5 @@
 /**
- * Cross-platform utility functions for Claude Code hooks and scripts
+ * Cross-platform utility functions for OpenCode CheatScale scripts
  * Works on Windows, macOS, and Linux
  */
 
@@ -29,24 +29,24 @@ function getHomeDir() {
 }
 
 /**
- * Get the Claude config directory
+ * Get the OpenCode config directory
  */
-function getClaudeDir() {
-  return path.join(getHomeDir(), '.claude');
+function getOpenCodeDir() {
+  return path.join(getHomeDir(), '.opencode');
 }
 
 /**
  * Get the sessions directory
  */
 function getSessionsDir() {
-  return path.join(getClaudeDir(), SESSION_DATA_DIR_NAME);
+  return path.join(getOpenCodeDir(), SESSION_DATA_DIR_NAME);
 }
 
 /**
- * Get the legacy sessions directory used by older ECC installs
+ * Get the legacy sessions directory used by older OCS installs
  */
 function getLegacySessionsDir() {
-  return path.join(getClaudeDir(), LEGACY_SESSIONS_DIR_NAME);
+  return path.join(getOpenCodeDir(), LEGACY_SESSIONS_DIR_NAME);
 }
 
 /**
@@ -60,7 +60,7 @@ function getSessionSearchDirs() {
  * Get the learned skills directory
  */
 function getLearnedSkillsDir() {
-  return path.join(getClaudeDir(), 'skills', 'learned');
+  return path.join(getOpenCodeDir(), 'skills', 'learned');
 }
 
 /**
@@ -132,8 +132,8 @@ function getProjectName() {
 /**
  * Sanitize a string for use as a session filename segment.
  * Replaces invalid characters with hyphens, collapses runs, strips
- * leading/trailing hyphens, and removes leading dots so hidden-dir names
- * like ".claude" map cleanly to "claude".
+  * leading/trailing hyphens, and removes leading dots so hidden-dir names
+  * like ".opencode" map cleanly to "opencode".
  *
  * Pure non-ASCII inputs get a stable 8-char hash so distinct names do not
  * collapse to the same fallback session id. Mixed-script inputs retain their
@@ -165,11 +165,11 @@ function sanitizeSessionId(raw) {
 }
 
 /**
- * Get short session ID from CLAUDE_SESSION_ID environment variable
+ * Get short session ID from OPENCODE_SESSION_ID environment variable
  * Returns last 8 characters, falls back to a sanitized project name then 'default'.
  */
 function getSessionIdShort(fallback = 'default') {
-  const sessionId = process.env.CLAUDE_SESSION_ID;
+  const sessionId = process.env.OPENCODE_SESSION_ID;
   if (sessionId && sessionId.length > 0) {
     const sanitized = sanitizeSessionId(sessionId.slice(-8));
     if (sanitized) return sanitized;
@@ -318,14 +318,14 @@ async function readStdinJson(options = {}) {
 }
 
 /**
- * Log to stderr (visible to user in Claude Code)
+ * Log to stderr (visible to user in the terminal)
  */
 function log(message) {
   console.error(message);
 }
 
 /**
- * Output to stdout (returned to Claude)
+ * Output to stdout (returned to the active harness)
  */
 function output(data) {
   if (typeof data === 'object') {
@@ -581,7 +581,7 @@ module.exports = {
 
   // Directories
   getHomeDir,
-  getClaudeDir,
+  getOpenCodeDir,
   getSessionsDir,
   getLegacySessionsDir,
   getSessionSearchDirs,
