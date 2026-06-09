@@ -7,6 +7,8 @@ agent: orchestrator
 
 Interactively backdate local changes or generate mock commits to populate past dates in the git contribution graph. Supports user-defined minimum and maximum commits per day so contribution counts stay within a requested range.
 
+All git operations for this command happen in `codebase/`. Run status checks, commits, helper scripts, and pushes from that directory.
+
 ---
 
 ## Core Protocols
