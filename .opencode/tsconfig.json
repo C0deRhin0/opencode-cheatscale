@@ -19,7 +19,6 @@
   },
   "include": [
     "plugins/**/*.ts",
-    "tools/**/*.ts",
     "index.ts"
   ],
   "exclude": [
