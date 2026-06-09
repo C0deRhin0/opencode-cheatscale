@@ -248,11 +248,89 @@ def split_paths_into_batches(paths: list[str], target_batches: int) -> list[list
     return batches
 
 
-def build_commit_message(base_message: str, index: int, total: int) -> str:
-    """Create a non-identical commit message for grouped local changes."""
+def infer_commit_type(paths: list[str]) -> str:
+    """Infer a conventional commit type from the grouped paths."""
+    extensions = {os.path.splitext(path)[1].lower() for path in paths}
+    lowered_paths = [path.lower() for path in paths]
+
+    if extensions and extensions.issubset({".md", ".mdx", ".txt"}):
+        return "docs"
+    if any("test" in path or "spec" in path for path in lowered_paths):
+        return "test"
+    if any(path.endswith((".json", ".jsonc", ".yaml", ".yml", ".toml")) for path in lowered_paths):
+        return "chore"
+    if any(path.endswith((".ts", ".tsx", ".js", ".jsx", ".py", ".sh")) for path in lowered_paths):
+        return "chore"
+    return "chore"
+
+
+def humanize_path_part(value: str) -> str:
+    """Convert a path segment or file stem into a short commit subject part."""
+    stem = os.path.splitext(os.path.basename(value))[0]
+    words = re.sub(r"[^a-zA-Z0-9]+", " ", stem).strip().lower()
+    return words or "project"
+
+
+def infer_commit_subject(paths: list[str]) -> str:
+    """Infer a natural subject from the grouped paths."""
+    lowered_paths = [path.lower() for path in paths]
+
+    command_paths = [path for path in paths if "/.opencode/commands/" in f"/{path.lower()}"]
+    if command_paths:
+        return f"{humanize_path_part(command_paths[0])} command"
+
+    skill_paths = [path for path in paths if "/.opencode/skills/" in f"/{path.lower()}"]
+    if skill_paths:
+        parts = skill_paths[0].split("/")
+        try:
+            skill_name = parts[parts.index("skills") + 1]
+            return f"{humanize_path_part(skill_name)} skill docs"
+        except (ValueError, IndexError):
+            return "skill documentation"
+
+    script_paths = [path for path in paths if "/.opencode/scripts/" in f"/{path.lower()}"]
+    if script_paths:
+        return f"{humanize_path_part(script_paths[0])} scripts"
+
+    plugin_paths = [path for path in paths if "/.opencode/plugins/" in f"/{path.lower()}"]
+    if plugin_paths:
+        return f"{humanize_path_part(plugin_paths[0])} plugin"
+
+    if any("/.opencode/commands/" in f"/{path}" for path in lowered_paths):
+        return "command guidance"
+    if any("/.opencode/skills/" in f"/{path}" for path in lowered_paths):
+        return "skill documentation"
+    if any("/.opencode/scripts/" in f"/{path}" for path in lowered_paths):
+        return "script utilities"
+    if any("/.opencode/plugins/" in f"/{path}" for path in lowered_paths):
+        return "plugin wiring"
+    if any(path.endswith(("opencode.json", ".mcp.json", "package.json", "tsconfig.json")) for path in lowered_paths):
+        return "opencode configuration"
+    if any(path.endswith(("readme.md", "agents.md", "rules.md", "soul.md")) for path in lowered_paths):
+        return "project documentation"
+    return "project assets"
+
+
+def build_commit_message(base_message: str, index: int, total: int, paths: list[str]) -> str:
+    """Create a natural commit message for grouped local changes."""
     if total <= 1:
         return base_message
-    return f"{base_message} batch {index}"
+
+    actions = [
+        "update",
+        "refine",
+        "revise",
+        "clean up",
+        "align",
+        "refresh",
+        "consolidate",
+        "reorganize",
+    ]
+    commit_type = infer_commit_type(paths)
+    action = actions[(index - 1) % len(actions)]
+    subject = infer_commit_subject(paths)
+
+    return f"{commit_type}: {action} {subject}"
 
 
 def build_even_batch_slot_map(slot_count: int, batches: list[list[str]]) -> dict[int, list[str]]:
@@ -494,7 +572,7 @@ def main():
                 [
                     "commit",
                     "-m",
-                    build_commit_message(args.message, real_commit_count, total_real_batches),
+                    build_commit_message(args.message, real_commit_count, total_real_batches, batch),
                 ],
                 env=git_env,
             )
