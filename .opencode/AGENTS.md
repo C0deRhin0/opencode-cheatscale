@@ -12,13 +12,14 @@ This is a **production-ready OpenCode harness** providing specialized agents, co
 4. **Immutability**  Always create new objects, never mutate existing ones
 5. **Plan Before Execute**  Plan complex features before writing code
 6. **User Ownership** All generated works belong to the USER; avoid AI signature or "Agent" mentions in code/commits
-7. **Scoped Domain Authority** Specialists (Architect/Planner) have direct write authority within their domains; Orchestrator coordinates boundaries.
+7. **Scoped Domain Authority** Specialists have write authority only within assigned domains; Planner remains decomposition-focused and Orchestrator coordinates boundaries.
 
 ## Available Agents
 
 | Agent | Purpose | When to Use |
 |-------|---------|-------------|
 | build | Primary coding agent | Development work |
+| orchestrator | Root workflow coordinator | Large multi-phase commands |
 | planner | Implementation planning | Complex features, refactoring |
 | architect | System design and scalability | Architectural decisions |
 | tdd-guide | Test-driven development | New features, bug fixes |
@@ -41,6 +42,7 @@ This is a **production-ready OpenCode harness** providing specialized agents, co
 | accessibility-reviewer | WCAG compliance | Accessibility audits |
 | qa-engineer | Quality assurance | Test coverage, edge cases |
 | synthesis-writer | Bootstrap roadmap generation | Writing plans/ files in parallel |
+| reducer | Output synthesis | Merge parallel agent results |
 
 ## Agent Orchestration
 
@@ -118,7 +120,7 @@ Troubleshoot failures: check test isolation  verify mocks  fix implementation (n
 
 ## Git Workflow
 
-**Commit format:** `<type>: <description>`  Types: feat, fix, refactor, docs, test, chore, perf, ci
+**Commit format:** `<type>(<optional-scope>): <description>`  Types: feat, fix, refactor, docs, test, chore, perf, ci. Keep drip metadata out of commit messages; local drip queue state belongs in `drip/todo/*` and `drip/done/*` tags only.
 
 **No Self-Attribution:** NEVER mention the "Agent" or "AI" in commit messages or source code signatures. All work is attributed to the USER.
 
@@ -141,14 +143,13 @@ Troubleshoot failures: check test isolation  verify mocks  fix implementation (n
 ## Project Structure
 
 ```
-agents/           16 agent definition files (20 registered in opencode.json including _stick variants)
-skills/           Skill catalog (subset loaded in config)
-commands/         Command catalog (25+ registered in config)
-hooks/            Trigger-based automations
-rules/            Always-follow guidelines (common + per-language)
-scripts/          Cross-platform Node.js utilities
-mcp-configs/      MCP server configurations
-tests/            Test suite
+agents/           Specialist agent definitions
+skills/           Skill catalog
+commands/         Slash command prompts
+plugins/          OpenCode runtime hooks
+instructions/     Global operating instructions
+scripts/          Helper utilities and integrations
+mcp-configs/      MCP server reference configurations
 ```
 
 ## Success Metrics
