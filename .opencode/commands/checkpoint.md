@@ -48,6 +48,28 @@ git diff --stat [last-checkpoint-commit]
 1. Step 1
 2. Step 2
 
+## Loop Engineering Verification Record
+
+When checkpointing loop-like work, include the structured fields from `.opencode/loop-contracts/verification-record-template.yaml`:
+
+```yaml
+status: PASS | FAIL | PARTIAL | NOT_RUN
+commands_run:
+  - command:
+    exit_code:
+    evidence:
+tests:
+build:
+lint:
+security:
+reviewers:
+unverified_claims:
+risks:
+next_action:
+```
+
+Store raw or private checkpoint artifacts only under `.opencode/local/verification/`. Commit only reviewed durable documentation.
+
 ## Usage
 
 ```bash
@@ -66,6 +88,7 @@ Use checkpoints to:
 - Track progress through phases
 - Enable rollback if needed
 - Document verification points
+- Preserve loop stop-condition evidence so “verified” is not just a prose claim
 
 ---
 
