@@ -1,5 +1,6 @@
 ---
 description: Answer a quick side question without interrupting or losing context from the current task. Resume work automatically after answering.
+agent: build
 ---
 
 # Aside Command

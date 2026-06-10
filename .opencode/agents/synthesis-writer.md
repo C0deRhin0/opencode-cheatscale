@@ -1,7 +1,14 @@
 ---
+name: synthesis-writer
 description: Synthesis writer for bootstrap roadmap generation. Writes planning artifacts in parallel during the Synthesis phase.
 temperature: 0.4
-agent: orchestrator
+mode: subagent
+tools:
+  read: true
+  write: true
+  edit: true
+  bash: false
+  question: true
 ---
 
 # Agent: synthesis-writer
