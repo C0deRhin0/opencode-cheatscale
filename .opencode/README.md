@@ -11,20 +11,114 @@ For the GitHub-facing project overview, see the repository root `README.md`. Thi
 ```text
 .opencode/
 ├── opencode.json      # Main OpenCode wiring: agents, commands, plugins, models
+├── install.sh         # Portable exporter wrapper
+├── package.json       # Optional plugin/package scripts and metadata
 ├── agents/            # 25 specialist agent prompts
-├── commands/          # 30 slash command prompts
-├── skills/            # reusable instruction packs and future placeholders
+├── commands/          # 35 slash command prompts
+├── skills/            # reusable instruction packs, gotcha, skill-builder, meta-harness
 ├── plugins/           # OpenCode runtime hooks
-├── scripts/           # helper scripts, JIRA sync, backdating, harness health
+├── scripts/           # helper scripts, portability exporter, hooks, JIRA sync, harness health
+├── loop-contracts/    # loop contract, verification, reviewer, worktree, and benchmark templates
+├── portable/          # adapter notes for non-OpenCode harness targets
+├── local/             # ignored local-only gotcha, trace, benchmark, and diagnosis state
 ├── instructions/      # global operating instructions
 ├── mcp-configs/       # MCP server reference configs
 ├── AGENTS.md          # agent roster and operating rules
 ├── RULES.md           # wave protocols and constraints
 ├── SOUL.md            # core identity and principles
-└── .mcp.json          # active local MCP servers
+└── .mcp.json          # legacy/reference MCP server examples
 ```
 
-The inherited upstream folders that were not part of the active local harness were removed: old hook configs, unused schemas, rule packs, contexts, extra tools, installer manifests, Rust/TUI experiments, and generated dependency folders.
+The inherited upstream folders that were not part of the active local harness were removed: old hook configs, unused schemas, rule packs, contexts, extra tools, installer manifests, and Rust/TUI experiments. Local build output such as `node_modules/` and `dist/` is ignored and reported by `/harness-health` as cleanup candidates when present.
+
+---
+
+## Harness Feature Inventory
+
+The active `.opencode/` harness contains these features:
+
+| Feature area | Included capabilities |
+|---|---|
+| OpenCode config | Strict-schema `opencode.json`, default `build` agent, reduced eager instructions, skills path registration, valid `mcp` entries, and plugin loading via `./plugins/ocs-hooks.ts`. |
+| Agents | 25 registered primary/subagents with domain, planning, quality, research, synthesis, and cleanup roles. |
+| Commands | 35 slash commands for planning, execution, testing, review, sessions, git cadence, JIRA sync, gotchas, skill building, loop planning/reporting, and health checks. |
+| Skills | 39 `SKILL.md` instruction packs, including CheatScale-specific skills and broader API/backend/frontend/security/testing/research/media/platform workflows. |
+| Wave orchestration | Phase 0 route/scan, optional ingestion, knowledge wave, domain wave, quality wave, and synthesis/checkpoint phase. |
+| Roadmaps | Feature > Task > Subtask planning files in `plans/$SCOPE/`, Obsidian-compatible frontmatter, wiki-links, conventions, and scope instructions. |
+| Git cadence | Atomic checkpoints, local-only `drip/todo/*` and `drip/done/*` tags, `/push`, `/backdate`, and `/redate`. |
+| JIRA sync | Optional local credential config, safe scope/project/issue-key validation, JIRA hierarchy creation, and JIRA hierarchy deletion. |
+| Local learning | `/gotcha`, `/skill-builder`, `/harness-optimize`, local-only gotchas, generated views, optional traces, and manual meta-harness diagnosis. |
+| Loop Engineering | `/loop-plan`, `/loop-report`, loop contracts, verification records, reviewer schemas, worktree protocol, executable benchmark specs, fail-closed evaluation, state ownership, and approval gates. |
+| Native hooks | OpenCode-supported hooks for events, commands, tools, permissions, shell env, traces, and compaction context. |
+| Native safety | Denies sensitive bash/read access to `.env`, nested `.env`, JIRA config env files, `.opencode/local/**`, `.agents/local/**`, redirection forms such as `cat <.env`, and broad destructive `rm -rf` variants. |
+| Portable export | Generates `AGENTS.md`, `.agents/skills`, `.agents/harness-hooks`, `.agents/loop-contracts`, manifests, local-state gitignore, portability docs, and Claude/Codex/Gemini adapters. |
+| Portable safety | Dry-run planning, `--force` backups, `--list-targets`, managed markers, checksum manifests, partial-export manifest preservation, symlink rejection, secret exclusions, and local-only traces/backups. |
+| Validation | `/harness-health`, `npm test`, `npm run build`, `npm run portable:verify`, skill validation, shell syntax checks, and dependency audits. |
+
+---
+
+## Portable Harness Export
+
+OpenCode remains the native authoring harness, but CheatScale can now generate a vendor-neutral layer plus platform adapters for Claude Code, Codex, and Gemini/Antigravity.
+
+```bash
+.opencode/install.sh --target all --dry-run
+.opencode/install.sh --target claude --project /path/to/project
+.opencode/install.sh --target codex --project /path/to/project
+.opencode/install.sh --target gemini --project /path/to/project
+.opencode/install.sh --list-targets
+```
+
+Exporter options:
+
+| Option | Purpose |
+|---|---|
+| `--target portable\|claude\|codex\|gemini\|all` | Select output target. Adapter targets automatically include the portable base. |
+| `--project /path/to/project` | Export into a specific project root. |
+| `--dry-run` | Plan writes without touching files. |
+| `--force` | Overwrite existing unmanaged files after backup. |
+| `--backup` / `--no-backup` | Control backup creation for overwritten files. |
+| `--list-targets` | Print the adapter capability registry. |
+
+Generated portable files use:
+
+```text
+AGENTS.md                         # shared instruction source
+.agents/.gitignore                # local-state protection for backups/traces
+.agents/PORTABILITY.md            # generated operator notes
+.agents/skills/                   # Agent Skills-compatible workflow library
+.agents/harness-hooks/            # shared deterministic hook scripts
+.agents/loop-contracts/           # loop contract and verification templates
+.agents/harness-adapters.json     # target capability registry
+.agents/harness-manifest.json     # generated-file manifest/checksums
+```
+
+Platform adapters are intentionally thin:
+
+| Target | Generated adapter |
+|---|---|
+| Claude Code | `CLAUDE.md`, `.claude/settings.json`, `.claude/skills/` mirror |
+| Codex | `.codex/config.toml`, `.codex/hooks.json` |
+| Gemini/Antigravity | `GEMINI.md`, `.gemini/settings.json` |
+
+Shared hook scripts:
+
+| Script | Behavior |
+|---|---|
+| `session-context.cjs` | Emits concise OCS context at session start. |
+| `pre-tool-policy.cjs` | Blocks broad destructive `rm -rf` variants, git tag pushes, unapproved force pushes, unapproved package publishes, sensitive local-data reads including nested `.env` and `cat <.env` forms, and sensitive file-tool targets when adapter payloads include paths. |
+| `gotcha-check.cjs` | Reads local gotcha state and surfaces relevant reminders. |
+| `redact-trace.cjs` | Writes opt-in redacted traces only when `OCS_TRACE_CAPTURE=1`; output is capped, local-only, symlink-checked, and lock-protected. |
+
+Exporter safety guarantees:
+
+- The exporter skips unmanaged existing files unless `--force` is passed.
+- Forced overwrites are backed up under `.agents/local/backups/` and `.agents/.gitignore` keeps local state out of source control.
+- Managed files are tracked with `OCS-PORTABLE-MANAGED` markers where practical plus `.agents/harness-manifest.json` checksums.
+- Partial exports preserve manifest entries for other targets, so running `all`, then `codex`, then `claude` remains idempotent.
+- Symlinked managed directories are rejected before writes, preventing path escape from the target project.
+- Local-only state is never exported: `.opencode/local/`, `.agents/local/`, generated gotcha views, JIRA credentials, traces, diagnostics, `.env` files, token files, and credential-like auxiliary files stay private.
+- Claude Code permissions are scoped to generated docs, hooks, and skills; local traces, backups, credentials, and secrets are denied.
 
 ---
 
@@ -70,17 +164,19 @@ The “cheat” is a deliberate workflow for separating real work time from visi
 | Plan | `/bootstrap <feature>` | Creates `plans/$SCOPE/` with scope hub, conventions, instructions, and task files. |
 | Extend | `/inject <scope> <change>` | Adds new requirements without rewriting the roadmap. |
 | Validate | `/validate-roadmap <scope>` | Stress-tests roadmap structure, feasibility, and scope. |
-| Execute | `/routine <scope> <task>` | Runs atomic roadmapped tasks with dynamic wave routing. |
-| Queue | `/commit <scope> <task>` | Commits local work inside `codebase/` without pushing. |
-| Drip-feed | `/push [scope task]` | Pushes the oldest queued commit or task-tagged batch with date smoothing. |
+| Execute | `/routine <scope> <task>` | Runs a roadmapped task, creates clean local commits, and adds a private `drip/todo/<scope>/<task>` tag. |
+| Queue | `/commit <scope> <task>` | Commits manual local work inside `codebase/` and adds it to the local drip-tag queue. |
+| Drip-feed | `/push [scope task]` | Pushes the oldest pending local drip tag with date smoothing and records a local `drip/done/*` marker. |
 | Backfill | `/backdate <date/range>` | Creates dated commits from current changes or mock activity. |
 | Rewrite | `/redate <commits> <date/range>` | Rewrites existing commit timestamps across a target date or range. |
 
 The typical flow is:
 
 ```text
-/bootstrap -> /routine -> /commit -> /push
+/bootstrap -> /routine -> /sitrep -> /push
 ```
+
+Manual changes can enter the same queue with `/commit <scope> <task>`. Drip metadata lives in local-only git tags, not commit messages, and `/push` must not publish `drip/*` tags.
 
 For direct contribution-graph manipulation:
 
@@ -106,7 +202,7 @@ For direct contribution-graph manipulation:
 
 ## Registered Commands
 
-`opencode.json` currently registers **30 commands**.
+`opencode.json` currently registers **35 commands**.
 
 ```text
 /aside
@@ -120,10 +216,14 @@ For direct contribution-graph manipulation:
 /debate
 /eval
 /execute
+/gotcha
 /harness-health
+/harness-optimize
 /inject
 /jira-delete
 /jira-push
+/loop-plan
+/loop-report
 /plan
 /push
 /redate
@@ -134,6 +234,7 @@ For direct contribution-graph manipulation:
 /save-session
 /security
 /sessions
+/skill-builder
 /sitrep
 /tdd
 /test-coverage
@@ -145,20 +246,27 @@ For direct contribution-graph manipulation:
 
 ## Skills
 
-Skills live in `skills/<name>/SKILL.md`. `opencode.json` also registers `.opencode/skills` through `skills.paths`, so valid skills can be discovered by the harness.
+Skills live in `skills/<name>/SKILL.md`. `opencode.json` also registers `.opencode/skills` through `skills.paths`, so valid skills can be discovered by the harness and exported into `.agents/skills/` by the portable exporter.
 
-First-party/future CheatScale skills include:
+The current catalog validates **39 skill files**. CheatScale-specific and roadmap skills include:
 
 ```text
 cheatscale-conventions
+context-budget
+gotcha
 git-backdating
 jira-mapping
+loop-engineering
+meta-harness
 obsidian-frontmatter
 phase-zero-scan
+skill-builder
 synthesis-roadmap-format
 ```
 
 The placeholder skills are intentionally present for future expansion and should not be deleted.
+
+The broader skill catalog also covers API design, backend/frontend patterns, Bun, Claude API, coding standards, content/crosspost workflows, deep/exa/market research, E2E testing, evals, fal.ai media, frontend slides, investor materials/outreach, MCP server patterns, Next.js Turbopack, security review, strategic compaction, TDD, verification loops, video editing, and X API integration.
 
 ---
 
@@ -167,10 +275,19 @@ The placeholder skills are intentionally present for future expansion and should
 Only active helper scripts remain:
 
 ```text
+install.sh
 scripts/backdate_helper.py
 scripts/redate_helper.py
 scripts/harness-health.cjs
+scripts/portable-harness.cjs
+scripts/portable-harness.test.cjs
+scripts/loop-plan.cjs
+scripts/loop-report.cjs
 scripts/install-deps.sh
+scripts/harness-hooks/
+scripts/gotcha/
+scripts/skill-builder/
+scripts/meta-harness/
 scripts/jira-sync/
 scripts/lib/session-manager.cjs
 scripts/lib/session-aliases.cjs
@@ -191,7 +308,7 @@ or directly:
 node .opencode/scripts/harness-health.cjs
 ```
 
-The validator checks command registration, agent registration, file references, skill frontmatter, cleanup artifacts, and stale upstream branding.
+The validator checks command registration, command frontmatter routing, agent registration, file references, OpenCode MCP shape, plugin file/hook validity, skill frontmatter, metadata counts, local-state protection, cleanup artifacts, and stale upstream branding.
 
 ### Optional plugin development setup
 
@@ -218,29 +335,60 @@ Runtime toggles:
 ```bash
 export OCS_HOOK_PROFILE=standard     # minimal | standard | strict
 export OCS_DISABLED_HOOKS="post:edit:console-warn,pre:bash:tmux-reminder"
+export OCS_AUTO_FORMAT=0             # set to 1 to allow strict-profile formatter writes
 ```
 
-Use `minimal` for low-noise sessions, `standard` for normal development, and `strict` when you want stronger reminders and checks.
+Use `minimal` for low-noise sessions, `standard` for normal development, and `strict` when you want stronger reminders and checks. Execution trace capture is disabled unless `OCS_TRACE_CAPTURE=1` is set for a targeted diagnosis session.
+
+Native hook features:
+
+| Hook area | Behavior |
+|---|---|
+| `event` | Logs session-related events without interrupting flow. |
+| `command.execute.before` | Reminds operators that `/gotcha` uses local-only state. |
+| `tool.execute.before` | Emits gotcha reminders before risky git/publish commands, doc-file warnings, and strict-profile long-running-command reminders. |
+| `tool.execute.after` | Tracks edited files, warns on `console.log`, optionally formats only when `OCS_AUTO_FORMAT=1`, typechecks in strict mode, and writes opt-in redacted traces. |
+| `permission.ask` | Denies sensitive read-like paths and sensitive bash reads; auto-allows only simple formatter/test commands after target/path checks. |
+| `shell.env` | Injects OCS and project environment metadata plus package-manager detection. |
+| `experimental.session.compacting` | Preserves active harness status, edited files, principles, and local-state reminders across compaction. |
+
+Sensitive bash/read denial covers `.env`, `.env.*`, nested or parent-relative `.env` paths, shell builtins such as `source .env`, redirections such as `cat <.env`, JIRA credential env files, `.opencode/local/**`, `.agents/local/**`, `.agents/backups/**`, and credential/secret-like paths.
+
+Meta-harness evaluation is fail-closed: benchmark specs must live under `.opencode/local/benchmarks/`, results stay under `.opencode/local/meta-harness/evaluations/`, symlink/cwd escapes are rejected, output is redacted, and unapproved benchmarks are limited to a safe Node script allowlist. Shell, destructive, or arbitrary commands require explicit `--approved-by-user`.
 
 ---
 
-## Active MCPs
+## Local Learning Loop
 
-Active local MCPs are configured in `.mcp.json`:
+The harness now has a manual-first learning loop:
 
-| Server | Purpose |
-|---|---|
-| `github` | Repository, issue, and PR workflows |
-| `context7` | Live documentation lookup |
-| `exa` | Neural web search |
-| `memory` | Persistent memory |
-| `playwright` | Browser automation |
-| `sequential-thinking` | Stepwise reasoning |
-| `obsidian` | Local vault integration |
+| Command | Purpose | State |
+|---|---|---|
+| `/gotcha` | Log/list/check local mistake patterns before risky operations. | `local/gotchas.json` |
+| `/skill-builder` | Create and validate OpenCode skills with collision checks. | `skills/*/SKILL.md` |
+| `/harness-optimize` | Diagnose gotchas and optional trace windows without auto-deploying changes. | `local/meta-harness/` |
 
-Reference MCP examples live in `mcp-configs/`.
+The `.gitignore` keeps `local/`, local credential files, and generated gotcha views out of version control.
 
-Do not commit real credentials from local MCP files unless intentionally private.
+---
+
+## MCPs
+
+OpenCode MCP servers are configured in `opencode.json` under `mcp`. Credentialed servers are disabled by default until the required environment variables are configured.
+
+| Server | Purpose | Status |
+|---|---|---|
+| `github` | Repository, issue, and PR workflows | Disabled by default |
+| `context7` | Live documentation lookup | Enabled |
+| `exa` | Neural web search | Disabled by default |
+| `memory` | Persistent memory | Enabled |
+| `playwright` | Browser automation | Enabled |
+| `sequential-thinking` | Stepwise reasoning | Enabled |
+| `obsidian` | Local vault integration | Disabled by default |
+
+Legacy/reference MCP examples live in `.mcp.json` and `mcp-configs/`.
+
+Do not commit real credentials from local MCP files, even in private repositories.
 
 ---
 
