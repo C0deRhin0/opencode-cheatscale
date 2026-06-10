@@ -20,6 +20,7 @@ Plan-driven or ad-hoc execution using wave-based orchestration with dynamic agen
 - **Domain Authority**: Specialists own scopes; changes through architect
 - **Parallelism**: MANDATORY - parallel dispatch where possible
 - **Complexity Gating**: Classify task BEFORE spawning agents
+- **Loop Contract**: Treat execution as a bounded loop with explicit maker/checker roles, stop conditions, budgets, and evidence.
 
 ---
 
@@ -29,7 +30,18 @@ Plan-driven or ad-hoc execution using wave-based orchestration with dynamic agen
 |------------|----------|----------------|
 | **Simple** | 1 domain, clear requirements | 1 writer + 1 reviewer |
 | **Medium** | 2-3 domains, partial clarity | Relevant writers + reviewers |
-| **Complex** | 3+ domains, ambiguous | Full wave roster minus irrelevant |
+| **Complex** | 3+ domains, ambiguous | Relevant wave specialists as needed |
+
+## Loop Contract Requirements
+
+For loop-like execution, derive a lightweight contract from `.opencode/loop-contracts/loop-contract-template.yaml` before implementation:
+
+- define the goal and scope
+- select maker agents and checker agents
+- state allowed read/write paths
+- cap repair attempts at 3 unless user-approved
+- define success and failure stop conditions
+- require a verification record before completion
 
 ---
 
@@ -60,7 +72,7 @@ Plan-driven or ad-hoc execution using wave-based orchestration with dynamic agen
 
 ---
 
-## Full Agent Roster (24 Agents)
+## Dispatch Roster
 
 | Agent | Specialty | When to Use |
 |-------|-----------|-------------|
@@ -150,6 +162,16 @@ Each agent:
 
 Reviewer validates. Issues → dispatch back to writer for fixes.
 
+### Phase 6: Verification Record
+
+Before final output, summarize evidence using `.opencode/loop-contracts/verification-record-template.yaml`:
+
+- commands run and exit codes
+- test/build/lint/security status
+- reviewer decisions
+- unverified claims
+- risks and next action
+
 ---
 
 ## Output Format
@@ -162,6 +184,7 @@ Complexity: [Simple/Medium/Complex]
 Agents Used: [list]
 Files Modified: [count]
 Issues: [count resolved]
+Verification Record: [PASS/FAIL/PARTIAL and evidence summary]
 ```
 
 ---
@@ -177,4 +200,4 @@ Issues: [count resolved]
 
 ---
 
-**Key Principle**: Dynamic routing - select only relevant agents based on task type. Never spawn all 24. Classify, route, execute.
+**Key Principle**: Dynamic routing - select only relevant agents based on task type. Never spawn the full roster by default. Classify, route, execute.
