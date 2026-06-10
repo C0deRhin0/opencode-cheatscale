@@ -1,5 +1,6 @@
 ---
 description: Manage OpenCode session history, aliases, and session metadata.
+agent: build
 ---
 
 # Sessions Command
