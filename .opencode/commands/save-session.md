@@ -1,5 +1,6 @@
 ---
 description: Save current session state to a dated file in ~/.opencode/session-data/ so work can be resumed in a future session with full context.
+agent: build
 ---
 
 # Save Session Command
