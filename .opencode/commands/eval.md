@@ -76,6 +76,21 @@ Final Score =  (criterion_score  weight) / total_weight
 
 [If not passing, what needs to change]
 
+## Loop Engineering Evidence
+
+For loop-like work, produce or reference a verification record using `.opencode/loop-contracts/verification-record-template.yaml`.
+
+Required evidence:
+
+- Commands run and exit codes
+- Expected output or acceptance criteria checked
+- Tests/build/lint/security status
+- Maker/checker reviewer decision
+- Unverified claims
+- Risks and next action
+
+Do not mark a loop complete unless success stop conditions from the loop contract are satisfied with evidence.
+
 ## Pass@K Metrics
 
 For non-deterministic evaluations:
