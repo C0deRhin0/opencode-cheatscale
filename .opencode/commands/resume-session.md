@@ -1,5 +1,6 @@
 ---
 description: Load the most recent session file from ~/.opencode/session-data/ and resume work with full context from where the last session ended.
+agent: build
 ---
 
 # Resume Session Command
