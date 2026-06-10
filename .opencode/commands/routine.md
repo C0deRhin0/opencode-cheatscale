@@ -18,9 +18,15 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 - **Code Sovereignty**: Orchestrator delegates; specialists write
 - **Immutability**: Always create new objects; never mutate
 - **Domain Authority**: Specialists own scopes; changes through architect
-- **Anti-Batching**: 1 Task = 1 Implementation = 1 Commit
+- **Anti-Batching**: 1 Requested Roadmap Task = 1 Implementation Batch = 1 Local Drip Tag. Atomic subtasks may create multiple clean commits, but only one drip tag is created after the full requested task completes.
 - **No Auto-Pushing**: STOP and await human confirmation
 - **Parallelism**: MANDATORY - parallel dispatch where possible
+- **Clean History**: Commit messages MUST NOT contain drip metadata such as `[scope#task-id]`, `[scope:PnDm]`, `drip-group`, or day markers.
+- **Local Tag Queue**: Completed tasks MUST be marked with local annotated tags under `drip/todo/<scope>/<task-id>` and tags MUST NOT be pushed.
+- **Loop Contract**: Treat each requested roadmap task as a bounded `routine-task-loop` with maker/checker separation, budgets, stop conditions, and verification evidence.
+
+## GLOBAL OUTPUT RULE: NO EMOJIS
+You are STRICTLY FORBIDDEN from using emojis in any generated output. All text must be plain professional text.
 
 ---
 
@@ -32,7 +38,7 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 |------------|----------|----------------|
 | **Simple** | 1 domain, clear requirements | 1 writer + 1 reviewer |
 | **Medium** | 2-3 domains, partial clarity | Relevant writers + Wave 3 reviewers |
-| **Complex** | 3+ domains, ambiguous | Full wave roster minus irrelevant |
+| **Complex** | 3+ domains, ambiguous | Relevant wave specialists as needed |
 
 ---
 
@@ -65,9 +71,24 @@ Full execution pipeline with **atomic checkpointing** — every completed task g
 
 **Rule**: Spawn ONLY the agents needed for the task. Never spawn all agents.
 
+## Loop Contract Requirements
+
+Before implementation, derive a lightweight loop contract from `.opencode/loop-contracts/loop-contract-template.yaml`:
+
+- `name`: `routine-task-loop-$SCOPE-$TASK_ID`
+- `maker`: selected domain writer(s)
+- `checker`: relevant reviewer(s), read-only where possible
+- `state_read`: roadmap scope hub, task file, conventions, relevant source files
+- `state_write`: `codebase/**`, plus optional `.opencode/local/verification/**`
+- `max_iterations`: 3 repair attempts unless the user approves more
+- `stop_success`: tests/build/review/acceptance evidence pass
+- `stop_failure`: repeated failure, budget exhaustion, scope violation, or unresolved Critical/High review finding
+
+Do not continue the loop when stop-failure conditions are met. Escalate to the user with a verification record.
+
 ---
 
-## Full Agent Roster (24 Agents)
+## Dispatch Roster
 
 | Agent | Specialty | When to Use |
 |-------|-----------|-------------|
@@ -159,13 +180,30 @@ Invoke @database-engineer + @database-reviewer in parallel
 
 Reviewer agents validate. If FAIL, dispatch back to writer for fixes.
 
-#### Step C — Atomic Checkpoint
+#### Step C — Atomic Commit Checkpoint
 
-1. Git add + commit within `codebase/`
-2. Format: `<type>: <description> [$SCOPE#task-id]` (NEW) or `[$SCOPE:PnDm]` (OLD, deprecated)
-3. Do NOT push - commits stay local
+1. Git add + commit within `codebase/` using clean conventional commit messages.
+2. Format: `<type>(<scope>): <description>` with no `[scope#task-id]`, `[scope:PnDm]`, or drip markers.
+3. Do NOT create a drip tag inside the atomic subtask loop.
+4. Do NOT push - commits stay local.
 
-**Repeat for every task**
+**Repeat Step A-C for every atomic subtask in the requested roadmap task.**
+
+#### Step D — Task-Level Drip Tag
+
+1. After all atomic subtasks for the requested `$TASK_ID` pass quality gates, verify neither the todo nor done tag already exists:
+   ```bash
+   git -C codebase rev-parse -q --verify "refs/tags/drip/todo/$SCOPE/$TASK_ID"
+   git -C codebase rev-parse -q --verify "refs/tags/drip/done/$SCOPE/$TASK_ID"
+   ```
+2. If either tag exists, stop and ask the user whether to choose a new task id or inspect existing bookkeeping. Do not overwrite tags.
+3. Create one local annotated tag at the final HEAD of the requested task:
+   ```bash
+   git -C codebase tag -a "drip/todo/$SCOPE/$TASK_ID" -m "drip-unit scope=$SCOPE task=$TASK_ID created=$(date -Iseconds)"
+   ```
+4. Do NOT push - commits and tags stay local.
+
+**Repeat for each requested roadmap task only when the user invokes `/routine` again.**
 
 ---
 
@@ -178,6 +216,18 @@ After all tasks complete, **parallel audit**:
 - `@qa-engineer` - Test coverage check
 - `@doc-updater` - Sync README
 
+### Phase 5: Verification Record
+
+Before reporting completion, produce a verification record following `.opencode/loop-contracts/verification-record-template.yaml`:
+
+- commands run and exit codes
+- tests/build/lint/security status
+- reviewer decisions
+- unverified claims
+- risks
+- next action
+- rollback notes if applicable
+
 ---
 
 ## Output Format
@@ -187,8 +237,10 @@ After all tasks complete, **parallel audit**:
 
 Tasks Completed: [n]
 Commits: [n]
+Drip Tags Created: [drip/todo/$SCOPE/task-id]
 Agents Used: [list]
 Issues Resolved: [count]
+Verification Record: [PASS/FAIL/PARTIAL and evidence summary]
 ```
 
 ---
@@ -206,4 +258,12 @@ Issues Resolved: [count]
 
 ---
 
-**Key Principle**: Dynamically route to relevant agents based on task type. Never spawn all 24 agents. Classify, route, execute.
+**Key Principle**: Dynamically route to relevant agents based on task type. Never spawn the full roster by default. Classify, route, execute.
+
+---
+
+## Related Commands
+
+- `/push [scope] [task-id]` - Drip-feed the oldest pending local tag to remote.
+- `/sitrep [scope]` - Resume context and inspect pending/completed drip tags.
+- `/commit <scope> <task-id>` - Manually add current uncommitted changes to the drip queue.
