@@ -1,6 +1,6 @@
 ---
 description: Adversarial review and validation of roadmap using wave-based quality gates.
-agent: orchestrator
+agent: critic
 ---
 
 # Validate Roadmap: Quality Assurance Pipeline
