@@ -1,0 +1,13 @@
+{
+  "name": "example-harness-health",
+  "description": "Example executable benchmark spec for meta-harness evaluation.",
+  "category": "harness-health",
+  "cwd": ".",
+  "command": "node",
+  "args": ["scripts/harness-health.cjs"],
+  "shell": false,
+  "expectedExitCode": 0,
+  "expectedStdoutIncludes": "Errors: 0",
+  "timeoutMs": 30000,
+  "allowDestructive": false
+}
