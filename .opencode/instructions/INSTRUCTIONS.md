@@ -20,7 +20,7 @@ This environment is structured into three distinct layers to ensure maximum port
     - **Purpose**: The actual application codebase.
     - **Content**: All source code, assets, and configuration for the software being built.
     - **CRITICAL RULE**: All code generation, file creation, and modifications related to the application MUST occur within this directory. This is the effective **Application Root**. This folder is the exclusive **Git Repository Root**. All `git` commands (add, commit, push, stage, etc.) MUST be executed within this directory. 
-    - **Isolation**: Modifications to `.opencode/` or `plan/` should NOT be tracked in the primary application Git repository.
+    - **Isolation**: Modifications to `.opencode/` or `plans/` should NOT be tracked in the primary application Git repository.
 
 ###  The Universal Grounding & Boot Sequence (MANDATORY)
 To prevent situational amnesia and directory navigation errors, all agents MUST follow this sequence for **every conversation and sub-task**:
@@ -29,7 +29,7 @@ To prevent situational amnesia and directory navigation errors, all agents MUST 
 3.  **Intelligence Sync**: Read `.opencode/instructions/INSTRUCTIONS.md` and the Constitution files (`<root_folder>/.opencode/AGENTS.md` and `<root_folder>/.opencode/RULES.md`) to load global behaviors.
 4.  **Context Sync**: Traverse all files in `plans/` (especially `$SCOPE.md`, `tasks/*.md`, and `INSTRUCTIONS.md`). If `coding_convention.md` is missing, proceed regardless
 5.  **Strategic Verification**: Confirm that the current task aligns with the project's active Phase.
-6.  **Progress Check**: Run `git log origin/main..main --oneline` inside `codebase/` to see the current unpushed "Drip" queue.
+6.  **Progress Check**: Run `git tag --list 'drip/todo/*' --sort=creatordate` inside `codebase/` to see the current pending Drip queue. Use `git cherry -v origin/main HEAD` only as a diagnostic; rewritten pushed commits have different hashes, so `origin/main..main` is not authoritative for drip bookkeeping.
 
 ### Priority & Adaptability
 - **Hierarchy**: If a command or project requirement in `plans/` conflicts with a general guideline, the **user-specific instruction takes precedence**.
@@ -211,12 +211,14 @@ MANDATORY workflow:
 ### Commit Message Format
 
 ```
-<type>: <description>
+<type>(<optional-scope>): <description>
 
 <optional body>
 ```
 
 Types: feat, fix, refactor, docs, test, chore, perf, ci
+
+Do not include drip metadata such as `[scope#task-id]`, `[scope:PnDm]`, `drip-group`, or artificial day markers in commit messages. Drip grouping belongs only in local git tags under `drip/todo/*` and `drip/done/*`.
 
 **No Self-Attribution (CRITICAL):** Attribution belongs entirely to the USER. NEVER mention the "Agent" or "AI" in commit messages, descriptions, or PR summaries.
 
@@ -248,10 +250,11 @@ When creating PRs:
    - Address CRITICAL and HIGH issues
    - Fix MEDIUM issues when possible
 
-4. **Strategic Stage & Drip (v2.8)**
-   - Once a task is verified, use **`/commit`** or **`/routine`** to buffer work into the local queue.
-   - **NEVER** push directly to `main` without the Drip-Feeder logic unless explicitly asked by the user.
-   - Use **`/push`** to push exactly one contribution per day (or a phased batch) to maintain the GitHub graph health.
+4. **Strategic Stage & Drip**
+    - Once a task is verified, use **`/commit`** or **`/routine`** to buffer work into the local queue.
+    - **NEVER** push directly to `main` without the Drip-Feeder logic unless explicitly asked by the user.
+    - Use **`/push`** to push one pending `drip/todo/*` unit at a time. The number of GitHub contributions reflects the number of commits in that unit, not the number of changed files.
+    - NEVER push local `drip/*` tags; `/push` must use `--no-follow-tags`.
 
 ---
 
@@ -289,20 +292,7 @@ No user prompt needed:
 
 ### Model Selection Strategy
 
-**Haiku** (90% of Sonnet capability, 3x cost savings):
-- Lightweight agents with frequent invocation
-- Pair programming and code generation
-- Worker agents in multi-agent systems
-
-**Sonnet** (Best coding model):
-- Main development work
-- Orchestrating multi-agent workflows
-- Complex coding tasks
-
-**Opus** (Deepest reasoning):
-- Complex architectural decisions
-- Maximum reasoning requirements
-- Research and analysis tasks
+Use the model configured by OpenCode for the active agent unless the user explicitly requests a different model. Prefer conserving context and delegating narrowly scoped work to specialist agents over changing models mid-task.
 
 ### Context Window Management
 
@@ -372,8 +362,8 @@ interface Repository<T> {
 OpenCode hooks are active via the plugin system (`plugins/ocs-hooks.ts`). The following are automated on file edits and pre-commit events but can also be run manually at any time:
 
 ### After Writing/Editing Code (automated via OCS hooks)
-- Prettier auto-formats JS/TS files on `file.edited` events
-- TypeScript type-check runs automatically after `.ts`/`.tsx` file edits
+- Prettier formatting is opt-in for JS/TS edits when `OCS_HOOK_PROFILE=strict` and `OCS_AUTO_FORMAT=1`
+- TypeScript type-check runs automatically after `.ts`/`.tsx` file edits in strict mode
 - console.log warnings surface on file save
 - To run manually: `prettier --write <file>` and `npx tsc --noEmit`
 
@@ -382,13 +372,13 @@ OpenCode hooks are active via the plugin system (`plugins/ocs-hooks.ts`). The fo
 - To run manually: `npm test` and verify no secrets are present
 
 ### Commands Available
-Your Agentic OS framework provides a library of **37+ registered commands** (with 52+ command files in total). Here are the most critical for daily operations:
+OpenCode CheatScale provides **30 registered commands**. For the complete list, see `.opencode/README.md`. The most critical for daily operations are:
 
-- **Orchestration**: `/task-orbit` (Phase-aware checkpointing), `/orchestrate` (Agent delegation), `/debate` (Multi-agent synthesis), `/plan` (Create implementation plan).
-- **Drip-Feeder**: `/commit` (Native buffering), `/push` (Automated DevOps & Pushing).
-- **Specialized Dev**: `/tdd` (Test-first workflow), `/code-review`, `/security`, `/e2e`.
-- **System Tools**: `/aside` (Internal thought logs), `/devfleet` (Subagent management), `/rules-distill` (Pattern learning), `/sitrep` (Fast situational report).
-- **Research**: `/research` (Adversarial search).
+- **Planning**: `/bootstrap`, `/inject`, `/validate-roadmap`, `/plan`.
+- **Execution**: `/routine`, `/execute`, `/tdd`, `/test-coverage`, `/code-review`, `/security`.
+- **Drip-Feeder**: `/commit`, `/push`, `/sitrep`, `/backdate`, `/redate`.
+- **Research and review**: `/research`, `/debate`, `/eval`, `/refactor-clean`.
+- **System tools**: `/aside`, `/checkpoint`, `/sessions`, `/save-session`, `/resume-session`, `/harness-health`.
 
 ---
 
