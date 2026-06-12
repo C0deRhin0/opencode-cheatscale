@@ -1,0 +1,39 @@
+record_type: verification-record
+generated_at: ISO-8601 timestamp
+loop_name: example-loop
+scope: example-scope
+status: PASS | FAIL | PARTIAL | NOT_RUN
+commands_run:
+  - command: npm test
+    cwd: .opencode
+    exit_code: 0
+    evidence: Summarize relevant output. Do not paste secrets or huge logs.
+tests:
+  status: PASS | FAIL | PARTIAL | NOT_RUN
+  total: null
+  passed: null
+  failed: null
+  coverage: null
+build:
+  status: PASS | FAIL | PARTIAL | NOT_RUN
+  command: null
+lint:
+  status: PASS | FAIL | PARTIAL | NOT_RUN
+  command: null
+security:
+  status: PASS | FAIL | PARTIAL | NOT_RUN
+  findings: []
+reviewers:
+  - agent: code-reviewer
+    decision: PASS | PASS_WITH_NOTES | FAIL
+    critical: 0
+    high: 0
+    medium: 0
+    low: 0
+unverified_claims: []
+risks: []
+not_run:
+  - check: null
+    reason: null
+next_action: null
+human_approval_required: true
