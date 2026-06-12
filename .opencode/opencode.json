@@ -8,23 +8,10 @@
     "AGENTS.md",
     "RULES.md",
     "SOUL.md",
-    "instructions/INSTRUCTIONS.md",
-    "skills/tdd-workflow/SKILL.md",
-    "skills/security-review/SKILL.md",
-    "skills/coding-standards/SKILL.md",
-    "skills/frontend-patterns/SKILL.md",
-    "skills/frontend-slides/SKILL.md",
-    "skills/backend-patterns/SKILL.md",
-    "skills/e2e-testing/SKILL.md",
-    "skills/verification-loop/SKILL.md",
-    "skills/api-design/SKILL.md",
-    "skills/strategic-compact/SKILL.md",
-    "skills/eval-harness/SKILL.md",
-    "skills/synthesis-roadmap-format/SKILL.md",
-    "skills/git-backdating/SKILL.md"
+    "instructions/INSTRUCTIONS.md"
   ],
   "plugin": [
-    "./plugins"
+    "./plugins/ocs-hooks.ts"
   ],
   "skills": {
     "paths": [
@@ -36,7 +23,7 @@
       "description": "Root Supervisor and Entry Point for large project workflows.",
       "mode": "primary",
       "model": "openai/gpt-5.5",
-      "prompt": "1. ROOT ANCHORING: Always anchor yourself in the conversation root. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plan/`. {file:agents/orchestrator.md}",
+      "prompt": "1. ROOT ANCHORING: Always anchor yourself in the conversation root. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plans/`. {file:agents/orchestrator.md}",
       "tools": {
         "read": true,
         "write": true,
@@ -87,7 +74,7 @@
       "description": "Software architecture specialist for system design, scalability, and technical decision-making.",
       "mode": "subagent",
       "model": "openai/gpt-5.5",
-      "prompt": "1. ROOT ANCHORING: Immediately verify your root directory. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plan/` (especially `roadmap.md` and `INSTRUCTIONS.md`). You are not permitted to provide architectural guidance until this context is synchronized. {file:agents/architect.md}",
+      "prompt": "1. ROOT ANCHORING: Immediately verify your root directory. 2. BOOT SEQUENCE: Your very first action MUST be to read `.opencode/instructions/INSTRUCTIONS.md` and then traverse all files in `plans/` (especially scope hubs, task files, and `INSTRUCTIONS.md`). You are not permitted to provide architectural guidance until this context is synchronized. {file:agents/architect.md}",
       "tools": {
         "read": true,
         "bash": true,
@@ -127,9 +114,17 @@
       "prompt": "{file:agents/tdd-guide.md}",
       "tools": {
         "read": true,
-        "write": true,
-        "edit": true,
+        "write": false,
+        "edit": false,
         "bash": true
+      },
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "bash": "ask",
+        "edit": "deny"
       }
     },
     "build-error-resolver": {
@@ -406,7 +401,8 @@
     },
     "checkpoint": {
       "description": "Save verification state and progress",
-      "template": "{file:commands/checkpoint.md}\n\n$ARGUMENTS"
+      "template": "{file:commands/checkpoint.md}\n\n$ARGUMENTS",
+      "agent": "build"
     },
     "sitrep": {
       "description": "Fast situational report of the current workspace state",
@@ -446,6 +442,31 @@
     "harness-health": {
       "description": "Validate OpenCode CheatScale harness wiring and cleanup state",
       "template": "{file:commands/harness-health.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "gotcha": {
+      "description": "Log, list, and check recurring harness mistakes using local-only gotcha state",
+      "template": "{file:commands/gotcha.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "skill-builder": {
+      "description": "Create and validate OpenCode-compatible skills with collision checks",
+      "template": "{file:commands/skill-builder.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "harness-optimize": {
+      "description": "Run a manual, gated meta-harness diagnosis using local gotchas and optional traces",
+      "template": "{file:commands/harness-optimize.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "loop-plan": {
+      "description": "Draft a bounded Loop Engineering contract before running loop-like work",
+      "template": "{file:commands/loop-plan.md}\n\n$ARGUMENTS",
+      "agent": "build"
+    },
+    "loop-report": {
+      "description": "Produce a read-only Loop Engineering heartbeat report over local harness state",
+      "template": "{file:commands/loop-report.md}\n\n$ARGUMENTS",
       "agent": "build"
     },
     "push": {
@@ -506,7 +527,91 @@
       "agent": "orchestrator"
     }
   },
+  "mcp": {
+    "github": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "enabled": false
+    },
+    "context7": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@2.1.4"
+      ],
+      "enabled": true
+    },
+    "exa": {
+      "type": "remote",
+      "url": "https://mcp.exa.ai/mcp",
+      "enabled": false
+    },
+    "memory": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@0.0.68",
+        "--extension"
+      ],
+      "enabled": true
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "enabled": true
+    },
+    "obsidian": {
+      "type": "local",
+      "command": [
+        "obsidian-mcp"
+      ],
+      "environment": {
+        "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
+        "OBSIDIAN_HOST": "127.0.0.1",
+        "OBSIDIAN_PORT": "27124",
+        "OBSIDIAN_VAULT_PATH": "${OBSIDIAN_VAULT_PATH}"
+      },
+      "enabled": false
+    }
+  },
   "permission": {
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "question": "allow",
+    "todowrite": "allow",
+    "skill": "allow",
+    "webfetch": "ask",
+    "bash": {
+      "*": "ask",
+      "node .opencode/scripts/harness-health.cjs": "allow",
+      "npm run build": "allow"
+    },
+    "edit": "ask",
+    "task": "ask",
+    "external_directory": {
+      "*": "ask"
+    },
     "mcp_*": "ask"
   },
   "provider": {
