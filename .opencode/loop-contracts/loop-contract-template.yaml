@@ -1,0 +1,50 @@
+name: example-loop
+trigger: manual
+goal: Describe the objective in one sentence.
+scope:
+  include:
+    - codebase/**
+  exclude:
+    - .opencode/local/**
+    - .env
+    - .env.*
+maker:
+  agent: build
+  write_scope:
+    - codebase/**
+checker:
+  agents:
+    - code-reviewer
+  mode: read-only
+allowed_tools:
+  read: true
+  edit: ask
+  write: ask
+  bash: ask
+state_read:
+  - plans/<scope>/**
+  - .opencode/loop-contracts/**
+state_write:
+  - .opencode/local/loop-contracts/**
+  - .opencode/local/verification/**
+budget:
+  max_iterations: 3
+  max_tool_calls: 30
+  max_wall_time_minutes: 30
+  max_changed_files: 8
+stop_success:
+  - acceptance criteria satisfied with evidence
+  - required commands exit with expected status
+  - checker reports no Critical or High findings
+stop_failure:
+  - same failure repeats twice
+  - budget exhausted
+  - scope boundary violated
+  - checker reports unresolved Critical or High findings
+escalation:
+  - stop and ask for human guidance
+  - provide verification record and unresolved risks
+human_approval_required: true
+rollback:
+  required: true
+  instructions: Describe how to revert or discard the loop attempt.
