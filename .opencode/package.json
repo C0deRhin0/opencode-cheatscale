@@ -22,6 +22,9 @@
     "opencode.json",
     "CHANGELOG.md",
     "README.md",
+    "install.sh",
+    "portable",
+    "loop-contracts",
     "AGENTS.md",
     "RULES.md",
     "SOUL.md",
@@ -35,6 +38,10 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "health": "node scripts/harness-health.cjs",
+    "test": "node --test scripts/portable-harness.test.cjs",
+    "loop:plan": "node scripts/loop-plan.cjs",
+    "loop:report": "node scripts/loop-report.cjs",
+    "portable:verify": "node scripts/portable-harness.cjs --target all --dry-run",
     "install:verify": "bash scripts/install-deps.sh",
     "prepublishOnly": "npm run build"
   },
@@ -47,7 +54,8 @@
     "ai-coding",
     "developer-tools",
     "hooks",
-    "automation"
+    "automation",
+    "loop-engineering"
   ],
   "author": "C0deRhin0",
   "license": "MIT",
