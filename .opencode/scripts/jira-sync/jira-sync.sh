@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/jira-auth.sh"
 
 # Default output directory
-OUTPUT_DIR="${OUTPUT_DIR:-/Users/C0deRhin0/Documents/Dev/try/plans}"
+OUTPUT_DIR="$(jira_resolve_output_dir "${OUTPUT_DIR:-plans}")" || exit 1
 
 # Colors for output
 RED='\033[0;31m'
@@ -24,7 +24,11 @@ build_jql() {
     local jql="$1"
     local max="${2:-50}"
     local fields="${3:-key,summary,issuetype,status}"
-    echo "{\"jql\":\"$jql\",\"maxResults\":$max,\"fields\":[\"$fields\"]}"
+    local jql_json
+    local fields_json
+    jql_json=$(printf '%s' "$jql" | jira_json_string)
+    fields_json=$(printf '%s' "$fields" | jira_json_string)
+    echo "{\"jql\":$jql_json,\"maxResults\":$max,\"fields\":[$fields_json]}"
 }
 
 # Parse issue keys from JIRA response
@@ -43,7 +47,17 @@ sync_pull() {
         exit 1
     fi
 
+    if ! jira_validate_issue_key "$epic_key"; then
+        log_error "Invalid JIRA epic key: $epic_key"
+        exit 1
+    fi
+
     [ -z "$scope_name" ] && scope_name=$(echo "$epic_key" | tr '[:upper:]' '[:lower:]' | cut -d'-' -f2)
+
+    if ! jira_validate_scope "$scope_name"; then
+        log_error "Invalid scope name: $scope_name"
+        exit 1
+    fi
 
     log_info "Pulling JIRA Epic: $epic_key -> $scope_name (Feature > Task > Subtask)"
 
@@ -102,11 +116,12 @@ SCOPE_EOF
 
     log_success "Scope hub created: $OUTPUT_DIR/$scope_name/$scope_name.md"
 
-    # Generate $SCOPE.md
-    cat > "$OUTPUT_DIR/$scope_name/$SCOPE.md" << ROADMAP_EOF
+    # Generate canonical scope/feature file with JIRA metadata
+    cat > "$OUTPUT_DIR/$scope_name/$scope_name.md" << ROADMAP_EOF
 ---
 scope: $scope_name
 feature: $scope_name
+jira_project: ${JIRA_PROJECT_KEY:-none}
 jira_epic: $epic_key
 jira_status: $epic_status
 created: $(date +%Y-%m-%d)
@@ -146,7 +161,7 @@ done)
 *Feature > Task > Subtask structure (1:1 JIRA mapping)*
 ROADMAP_EOF
 
-    log_success "Feature created: $OUTPUT_DIR/$scope_name/$SCOPE.md"
+    log_success "Feature created: $OUTPUT_DIR/$scope_name/$scope_name.md"
 
     # Create tasks directory
     mkdir -p "$OUTPUT_DIR/$scope_name/tasks"
@@ -210,7 +225,12 @@ do_issues_detailed() {
 # Push feature status to JIRA
 sync_push() {
     local scope_name="${1:-core}"
-    local feature_file="$OUTPUT_DIR/$scope_name/$SCOPE.md"
+    if ! jira_validate_scope "$scope_name"; then
+        log_error "Invalid scope name: $scope_name"
+        exit 1
+    fi
+
+    local feature_file="$OUTPUT_DIR/$scope_name/${scope_name}.md"
     local tasks_dir="$OUTPUT_DIR/$scope_name/tasks"
 
     if [ ! -f "$feature_file" ]; then
@@ -223,14 +243,19 @@ sync_push() {
     local jira_epic=$(grep -o 'jira_epic: [A-Z]*-[0-9]*' "$feature_file" | cut -d' ' -f2)
 
     if [ -z "$jira_epic" ]; then
-        log_error "No JIRA epic found in $SCOPE.md frontmatter"
+        log_error "No JIRA epic found in $scope_name.md frontmatter"
+        exit 1
+    fi
+
+    if ! jira_validate_issue_key "$jira_epic"; then
+        log_error "Invalid JIRA epic key in frontmatter: $jira_epic"
         exit 1
     fi
 
     # Count progress across $SCOPE.md and tasks/*.md
     local completed=0
     local total=0
-    for f in "$feature_file" "$tasks_dir"/*.md 2>/dev/null; do
+    for f in "$feature_file" "$tasks_dir"/*.md; do
         [ -f "$f" ] || continue
         completed=$((completed + $(grep -c "\- \[x\]" "$f" 2>/dev/null || echo "0")))
         total=$((total + $(grep -c "\- \[ \]" "$f" 2>/dev/null || echo "0")))
