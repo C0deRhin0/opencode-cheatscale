@@ -4,10 +4,68 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
+const workspaceRoot = path.resolve(root, '..');
 const cfgPath = path.join(root, 'opencode.json');
 const issues = [];
 
-const skipDirs = new Set(['node_modules', 'dist', '.git']);
+const skipDirs = new Set(['node_modules', 'dist', '.git', 'local']);
+const sensitiveRelPaths = new Set(['scripts/jira-sync/jira-config.env']);
+const allowedConfigKeys = new Set([
+  '$schema',
+  'shell',
+  'logLevel',
+  'server',
+  'command',
+  'skills',
+  'reference',
+  'watcher',
+  'snapshot',
+  'plugin',
+  'share',
+  'autoshare',
+  'autoupdate',
+  'disabled_providers',
+  'enabled_providers',
+  'model',
+  'small_model',
+  'default_agent',
+  'username',
+  'mode',
+  'agent',
+  'provider',
+  'mcp',
+  'formatter',
+  'lsp',
+  'instructions',
+  'layout',
+  'permission',
+  'tools',
+  'attachment',
+  'enterprise',
+  'tool_output',
+  'compaction',
+  'experimental',
+]);
+
+const supportedPluginHooks = new Set([
+  'event',
+  'config',
+  'chat.message',
+  'chat.params',
+  'chat.headers',
+  'permission.ask',
+  'command.execute.before',
+  'tool.execute.before',
+  'tool.execute.after',
+  'shell.env',
+  'experimental.chat.messages.transform',
+  'experimental.chat.system.transform',
+  'experimental.session.compacting',
+  'experimental.compaction.autocontinue',
+  'experimental.text.complete',
+  'tool.definition',
+]);
+
 const oldBrandingTerms = [
   'E' + 'CC',
   'Everything ' + 'Claude Code',
@@ -15,15 +73,20 @@ const oldBrandingTerms = [
   'ecc-' + 'universal',
   'E' + 'CCHooks',
   'ecc-' + 'hooks',
-  'OpenCode ' + 'Scale'
+  'OpenCode ' + 'Scale',
 ];
-const oldBranding = new RegExp(`\\b(${oldBrandingTerms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`);
+const oldBranding = new RegExp(`\\b(${oldBrandingTerms.map((term) => term.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})\\b`);
+const secretPattern = /(sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|Bearer\s+[A-Za-z0-9._~+/=-]{20,})/;
+
+function issue(level, message) {
+  issues.push([level, message]);
+}
 
 function readJson(file) {
   try {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (error) {
-    issues.push(['error', `Invalid JSON: ${path.relative(root, file)} (${error.message})`]);
+    issue('error', `Invalid JSON: ${path.relative(root, file)} (${error.message})`);
     return null;
   }
 }
@@ -50,16 +113,85 @@ function walk(dir, visitor) {
   }
 }
 
-function issue(level, message) {
-  issues.push([level, message]);
+function readTextIfExists(abs) {
+  try {
+    return fs.readFileSync(abs, 'utf8');
+  } catch {
+    return '';
+  }
 }
 
-const cfg = readJson(cfgPath);
-readJson(path.join(root, 'package.json'));
-readJson(path.join(root, 'package-lock.json'));
-readJson(path.join(root, 'tsconfig.json'));
+function frontmatter(markdown) {
+  const match = markdown.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
 
-if (cfg) {
+  const data = {};
+  for (const line of match[1].split('\n')) {
+    const item = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!item) continue;
+    data[item[1]] = item[2].trim().replace(/^['"]|['"]$/g, '');
+  }
+  return data;
+}
+
+function validateTopLevelConfig(cfg) {
+  for (const key of Object.keys(cfg)) {
+    if (!allowedConfigKeys.has(key)) issue('error', `Unknown top-level opencode.json key: ${key}`);
+  }
+
+  if (cfg.$schema !== 'https://opencode.ai/config.json') {
+    issue('warn', 'opencode.json should declare "$schema": "https://opencode.ai/config.json"');
+  }
+
+  if (!cfg.permission) {
+    issue('warn', 'opencode.json has no top-level permission block; deprecated agent tools fields should not be the only safety boundary.');
+  }
+}
+
+function validateMcpConfig(cfg) {
+  if (!cfg.mcp) return;
+  for (const [name, server] of Object.entries(cfg.mcp)) {
+    if (server.enabled === false && Object.keys(server).length === 1) continue;
+    if (server.type === 'local') {
+      if (!Array.isArray(server.command) || server.command.some((item) => typeof item !== 'string')) {
+        issue('error', `MCP ${name} local server must use command as an array of strings.`);
+      }
+      if (server.env) issue('error', `MCP ${name} uses env; OpenCode local MCP config expects environment.`);
+      continue;
+    }
+    if (server.type === 'remote') {
+      if (typeof server.url !== 'string') issue('error', `MCP ${name} remote server must include url.`);
+      continue;
+    }
+    issue('error', `MCP ${name} must specify type "local" or "remote".`);
+  }
+}
+
+function validatePlugins(cfg) {
+  for (const entry of cfg.plugin || []) {
+    const pluginPath = Array.isArray(entry) ? entry[0] : entry;
+    if (typeof pluginPath !== 'string' || !pluginPath.startsWith('.')) continue;
+
+    const abs = path.resolve(root, pluginPath);
+    if (!fs.existsSync(abs)) {
+      issue('error', `Plugin path does not exist: ${pluginPath}`);
+      continue;
+    }
+
+    if (fs.statSync(abs).isDirectory()) {
+      issue('error', `Plugin path points to a directory instead of a file: ${pluginPath}`);
+      continue;
+    }
+
+    const content = readTextIfExists(abs);
+    const hookKeyPattern = /"([a-z]+(?:\.[a-z]+)+)"\s*:\s*async/g;
+    for (const match of content.matchAll(hookKeyPattern)) {
+      if (!supportedPluginHooks.has(match[1])) issue('error', `Unsupported plugin hook name in ${pluginPath}: ${match[1]}`);
+    }
+  }
+}
+
+function validateCommandAndAgentFiles(cfg) {
   const registeredCommands = new Set(Object.keys(cfg.command || {}));
   const commandFiles = new Set(
     listFiles('commands', (name) => name.endsWith('.md')).map((name) => path.basename(name, '.md'))
@@ -70,6 +202,14 @@ if (cfg) {
   }
   for (const name of registeredCommands) {
     if (!commandFiles.has(name)) issue('error', `Registered command is missing file: ${name}`);
+  }
+
+  for (const [name, command] of Object.entries(cfg.command || {})) {
+    const commandPath = path.join(root, 'commands', `${name}.md`);
+    const fm = frontmatter(readTextIfExists(commandPath));
+    if (command.agent && fm.agent && fm.agent !== command.agent) {
+      issue('error', `Command agent mismatch for ${name}: frontmatter=${fm.agent}, opencode.json=${command.agent}`);
+    }
   }
 
   const registeredAgents = new Set(Object.keys(cfg.agent || {}));
@@ -84,8 +224,10 @@ if (cfg) {
     if (!agentFiles.has(name)) issue('error', `Registered agent is missing file: ${name}`);
   }
 
-  for (const instruction of cfg.instructions || []) {
-    if (!exists(instruction)) issue('error', `Instruction path is missing: ${instruction}`);
+  for (const name of agentFiles) {
+    const fm = frontmatter(readTextIfExists(path.join(root, 'agents', `${name}.md`)));
+    if (fm.name && fm.name !== name) issue('error', `Agent folder/name mismatch: agents/${name}.md declares ${fm.name}`);
+    if (!fm.name && name !== 'synthesis-writer') issue('warn', `Agent is missing frontmatter name: agents/${name}.md`);
   }
 
   const fileRef = /\{file:([^}]+)\}/g;
@@ -101,16 +243,136 @@ if (cfg) {
   }
 }
 
-for (const folder of listFiles('skills', (name) => fs.statSync(path.join(root, 'skills', name)).isDirectory())) {
-  const skillPath = path.join(root, 'skills', folder, 'SKILL.md');
-  if (!fs.existsSync(skillPath)) continue;
-  const body = fs.readFileSync(skillPath, 'utf8');
-  const match = body.match(/^name:\s*([^\n]+)/m);
-  if (!match) issue('error', `Skill is missing frontmatter name: skills/${folder}/SKILL.md`);
-  if (match && match[1].trim() !== folder) {
-    issue('error', `Skill folder/name mismatch: skills/${folder}/SKILL.md declares ${match[1].trim()}`);
+function validateSkills() {
+  const folders = listFiles('skills', (name) => fs.statSync(path.join(root, 'skills', name)).isDirectory());
+  for (const folder of folders) {
+    const skillPath = path.join(root, 'skills', folder, 'SKILL.md');
+    if (!fs.existsSync(skillPath)) continue;
+    const fm = frontmatter(readTextIfExists(skillPath));
+    if (!fm.name) issue('error', `Skill is missing frontmatter name: skills/${folder}/SKILL.md`);
+    if (!fm.description) issue('error', `Skill is missing frontmatter description: skills/${folder}/SKILL.md`);
+    if (fm.name && fm.name !== folder) issue('error', `Skill folder/name mismatch: skills/${folder}/SKILL.md declares ${fm.name}`);
   }
 }
+
+function validateLocalStateProtection() {
+  const gitignore = readTextIfExists(path.join(root, '.gitignore'));
+  for (const required of ['local/*', '!local/.gitkeep', 'scripts/jira-sync/jira-config.env']) {
+    if (!gitignore.includes(required)) issue('error', `.gitignore missing required local-state rule: ${required}`);
+  }
+
+  for (const rel of sensitiveRelPaths) {
+    if (exists(rel)) issue('warn', `Local credential file exists and must remain ignored/local-only: ${rel}`);
+  }
+}
+
+function validatePortableExporter() {
+  const required = [
+    'install.sh',
+    'scripts/portable-harness.cjs',
+    'scripts/portable-harness.test.cjs',
+    'scripts/harness-hooks/lib.cjs',
+    'scripts/harness-hooks/pre-tool-policy.cjs',
+    'scripts/harness-hooks/gotcha-check.cjs',
+    'scripts/harness-hooks/redact-trace.cjs',
+    'scripts/harness-hooks/session-context.cjs',
+    'portable/README.md',
+    'portable/adapters/claude-code.md',
+    'portable/adapters/codex.md',
+    'portable/adapters/gemini.md',
+  ];
+
+  for (const rel of required) {
+    if (!exists(rel)) issue('error', `Portable exporter file is missing: ${rel}`);
+  }
+
+  const installSh = readTextIfExists(path.join(root, 'install.sh'));
+  if (installSh && !installSh.includes('scripts/portable-harness.cjs')) {
+    issue('error', 'install.sh must delegate to scripts/portable-harness.cjs');
+  }
+
+  const exporter = readTextIfExists(path.join(root, 'scripts', 'portable-harness.cjs'));
+  if (exporter && !exporter.includes('OCS-PORTABLE-MANAGED')) {
+    issue('error', 'portable-harness.cjs must stamp generated files with OCS-PORTABLE-MANAGED');
+  }
+}
+
+function validateLoopEngineering() {
+  const required = [
+    'commands/loop-plan.md',
+    'commands/loop-report.md',
+    'skills/loop-engineering/SKILL.md',
+    'skills/context-budget/SKILL.md',
+    'scripts/loop-plan.cjs',
+    'scripts/loop-report.cjs',
+    'loop-contracts/README.md',
+    'loop-contracts/loop-contract-template.yaml',
+    'loop-contracts/verification-record-template.yaml',
+    'loop-contracts/reviewer-output-template.md',
+    'loop-contracts/worktree-protocol.md',
+    'loop-contracts/benchmark-spec-template.json',
+  ];
+
+  for (const rel of required) {
+    if (!exists(rel)) issue('error', `Loop Engineering file is missing: ${rel}`);
+  }
+
+  const metaLoop = readTextIfExists(path.join(root, 'scripts', 'meta-harness', 'loop.cjs'));
+  if (metaLoop && !metaLoop.includes('Autonomous meta-harness loops are disabled')) {
+    issue('error', 'Autonomous meta-harness loop must remain disabled by default.');
+  }
+
+  const evaluator = readTextIfExists(path.join(root, 'scripts', 'meta-harness', 'evaluate.cjs'));
+  if (evaluator && !evaluator.includes('spawnSync')) {
+    issue('error', 'meta-harness evaluate.cjs must execute benchmark commands, not only count files.');
+  }
+}
+
+function validateCounts(cfg) {
+  const commandCount = Object.keys(cfg.command || {}).length;
+  const agentCount = Object.keys(cfg.agent || {}).length;
+  const skillCount = listFiles('skills', (name) => fs.statSync(path.join(root, 'skills', name)).isDirectory() && fs.existsSync(path.join(root, 'skills', name, 'SKILL.md'))).length;
+  const rootReadme = readTextIfExists(path.join(workspaceRoot, 'README.md'));
+  const harnessReadme = readTextIfExists(path.join(root, 'README.md'));
+  const indexTs = readTextIfExists(path.join(root, 'index.ts'));
+
+  const checks = [
+    [rootReadme, new RegExp(`registers \\*\\*${agentCount} agents\\*\\*`), `Root README agent count should be ${agentCount}.`],
+    [rootReadme, new RegExp(`registers \\*\\*${commandCount} slash commands\\*\\*`), `Root README command count should be ${commandCount}.`],
+    [harnessReadme, new RegExp(`registers \\*\\*${agentCount} agents\\*\\*`), `.opencode README agent count should be ${agentCount}.`],
+    [harnessReadme, new RegExp(`registers \\*\\*${commandCount} commands\\*\\*`), `.opencode README command count should be ${commandCount}.`],
+    [indexTs, new RegExp(`agents:\\s*${agentCount}`), `index.ts metadata agents should be ${agentCount}.`],
+    [indexTs, new RegExp(`commands:\\s*${commandCount}`), `index.ts metadata commands should be ${commandCount}.`],
+    [indexTs, new RegExp(`skills:\\s*${skillCount}`), `index.ts metadata skills should be ${skillCount}.`],
+  ];
+
+  for (const [content, pattern, message] of checks) {
+    if (content && !pattern.test(content)) issue('warn', message);
+  }
+}
+
+const cfg = readJson(cfgPath);
+readJson(path.join(root, 'package.json'));
+readJson(path.join(root, 'package-lock.json'));
+readJson(path.join(root, 'tsconfig.json'));
+
+if (cfg) {
+  validateTopLevelConfig(cfg);
+  validateMcpConfig(cfg);
+  validatePlugins(cfg);
+  validateCommandAndAgentFiles(cfg);
+
+  for (const instruction of cfg.instructions || []) {
+    if (!exists(instruction)) issue('error', `Instruction path is missing: ${instruction}`);
+  }
+
+  validateCounts(cfg);
+}
+
+validateSkills();
+validateLocalStateProtection();
+validatePortableExporter();
+validateLoopEngineering();
 
 const junkPaths = ['node_modules', 'dist', '.DS_Store', 'opencode.json.bak'];
 for (const rel of junkPaths) {
@@ -120,9 +382,13 @@ for (const rel of junkPaths) {
 walk(root, (abs) => {
   const rel = path.relative(root, abs);
   if (path.basename(abs) === '.DS_Store') issue('warn', `macOS metadata file exists: ${rel}`);
+  if (sensitiveRelPaths.has(rel)) return;
   if (!/\.(md|json|ts|js|cjs|sh|py|yaml|yml)$/.test(abs)) return;
   const content = fs.readFileSync(abs, 'utf8');
   if (oldBranding.test(content)) issue('warn', `Old branding found in: ${rel}`);
+  if (secretPattern.test(content) && !content.includes('YOUR_') && !content.includes('${')) {
+    issue('error', `Potential secret pattern found in: ${rel}`);
+  }
 });
 
 const errorCount = issues.filter(([level]) => level === 'error').length;
