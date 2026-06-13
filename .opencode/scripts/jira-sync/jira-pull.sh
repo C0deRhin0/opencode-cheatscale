@@ -5,7 +5,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/jira-auth.sh"
 
-OUTPUT_DIR="${OUTPUT_DIR:-plans}"
+OUTPUT_DIR="$(jira_resolve_output_dir "${OUTPUT_DIR:-plans}")" || exit 1
 
 # Default JQL if no epic provided
 DEFAULT_JQL='project = "'"${JIRA_PROJECT_KEY}"'" AND type = Epic ORDER BY created DESC'
@@ -20,6 +20,11 @@ pull_epic() {
         echo "Example: $0 pull PROJ-123"
         echo ""
         echo "Or set DEFAULT_EPIC_KEY in jira-config.env"
+        exit 1
+    fi
+
+    if ! jira_validate_issue_key "$epic_key"; then
+        echo "ERROR: Invalid JIRA epic key: $epic_key"
         exit 1
     fi
 
@@ -60,6 +65,11 @@ pull_epic() {
     local scope_name=$(echo "$epic_key" | tr '[:upper:]' '[:lower:]' | cut -d'-' -f2)
     local scope_name="${scope_name:-feature}"
 
+    if ! jira_validate_scope "$scope_name"; then
+        echo "ERROR: Invalid derived scope name: $scope_name"
+        exit 1
+    fi
+
     generate_feature "$epic_key" "$epic_summary" "$epic_status" "$task_count" "$scope_name" "$children"
 }
 
@@ -71,6 +81,11 @@ generate_feature() {
     local task_count="$4"
     local scope_name="$5"
     local children="$6"
+
+    if ! jira_validate_scope "$scope_name"; then
+        echo "ERROR: Invalid scope name: $scope_name"
+        exit 1
+    fi
 
     mkdir -p "$OUTPUT_DIR/$scope_name/tasks"
 
@@ -95,10 +110,11 @@ EOF
     echo "Scope hub created: $OUTPUT_DIR/$scope_name/$scope_name.md"
 
     # Generate $SCOPE.md
-    cat > "$OUTPUT_DIR/$scope_name/$SCOPE.md" << EOF
+    cat > "$OUTPUT_DIR/$scope_name/$scope_name.md" << EOF
 ---
 scope: $scope_name
 feature: $scope_name
+jira_project: ${JIRA_PROJECT_KEY:-none}
 jira_epic: $epic_key
 jira_status: $epic_status
 created: $(date +%Y-%m-%d)
@@ -138,7 +154,7 @@ done)
 *Feature > Task > Subtask structure (1:1 JIRA mapping)*
 EOF
 
-    echo "Feature created: $OUTPUT_DIR/$scope_name/$SCOPE.md"
+    echo "Feature created: $OUTPUT_DIR/$scope_name/$scope_name.md"
 
     # Generate individual task files with frontmatter
     echo "$children" | grep -o '"key":"[A-Z]*-[0-9]*"' | sed 's/"key":"//;s/"$//' | while read task_key; do
