@@ -1,0 +1,8 @@
+id: example-benchmark
+description: Replace with a task that exercises the affected harness behavior.
+expected:
+  - Harness chooses the correct command, skill, or agent.
+  - No sensitive data is written outside .opencode/local/.
+  - Verification command passes.
+verification:
+  command: node .opencode/scripts/harness-health.cjs
