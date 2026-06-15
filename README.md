@@ -27,9 +27,9 @@ The name is literal. CheatScale is designed around a controlled productivity pip
 ```text
 1. Bootstrap a roadmap
 2. Execute tasks through wave-routed agents
-3. Commit each task atomically
-4. Keep commits local in a queue
-5. Push one task or one day of work at a time
+3. Commit each task with clean conventional commit messages
+4. Track the local queue with private `drip/todo/<scope>/<task-id>` tags
+5. Push one local drip unit at a time, then mark it with a private `drip/done/<scope>/<task-id>` tag
 6. Optionally backdate or redate commits to smooth contribution history
 ```
 
@@ -40,13 +40,13 @@ The name is literal. CheatScale is designed around a controlled productivity pip
 | Plan | `/bootstrap <feature>` | Creates `plans/$SCOPE/` with scope hub, conventions, instructions, and task files. |
 | Extend | `/inject <scope> <change>` | Adds new requirements without rewriting the whole roadmap. |
 | Validate | `/validate-roadmap <scope>` | Stress-tests roadmap structure, feasibility, and implementation risk. |
-| Execute | `/routine <scope> <task>` | Runs an atomic roadmapped task using dynamic wave-based agent routing. |
-| Queue | `/commit <scope> <task>` | Commits local changes inside `codebase/` without pushing. |
-| Drip-feed | `/push [scope task]` | Pushes the oldest queued commit or a task-tagged batch with date smoothing. |
+| Execute | `/routine <scope> <task>` | Runs a roadmapped task, creates clean local commits, and tags the task as `drip/todo/<scope>/<task>`. |
+| Queue | `/commit <scope> <task>` | Commits manual local changes inside `codebase/` and adds them to the local drip-tag queue. |
+| Drip-feed | `/push [scope task]` | Pushes the oldest pending local drip tag with date smoothing and records a local `drip/done/*` marker. |
 | Backfill | `/backdate <date/range>` | Creates dated commits from current changes or mock activity. |
 | Rewrite | `/redate <commits> <date/range>` | Rewrites timestamps of existing commits across a target date or range. |
 
-This lets you separate actual working time from visible contribution cadence. You can complete multiple tasks in one session, keep them as local checkpoints, and publish them as a steady sequence.
+This lets you separate actual working time from visible contribution cadence. You can complete multiple tasks in one session, keep them as local checkpoints with private git tags, and publish them as a steady sequence without exposing drip metadata in commit messages.
 
 ---
 
@@ -198,9 +198,9 @@ CheatScale currently registers **30 slash commands**.
 | `/update-docs` | Update documentation |
 | `/eval` | Evaluate against acceptance criteria |
 | `/checkpoint` | Save progress state |
-| `/commit` | Commit current local work into the drip queue |
+| `/commit` | Commit current local work into the local drip-tag queue |
 | `/commit-all` | Detect all changes, commit separately, then push all |
-| `/push` | Drip-feed queued commits and smooth contribution timing |
+| `/push` | Drip-feed one pending local tag and smooth contribution timing |
 | `/backdate` | Create backdated commits |
 | `/redate` | Rewrite existing commit timestamps |
 | `/jira-push` | Push roadmap hierarchy to JIRA |
