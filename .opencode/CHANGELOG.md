@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-16
+
+- Added six narrow, `Use ONLY` specialist agents for harness security, prompt-injection analysis, hook policy, context budget auditing, MCP supply-chain review, and incident forensics.
+- Extended the portable harness exporter to mirror full `.opencode/agents/*.md` prompt files into `.agents/agents/` with adapter registry, Claude read-permission, manifest, and documentation coverage.
+- Added agent-routing governance requiring unique workflows, clear non-overlap boundaries, and skills instead of agents when independent tool execution is not needed.
+- Extended harness health to validate narrow specialist agent descriptions and required boundary/output sections.
+- Hardened OpenCode server config to bind to `127.0.0.1`, disable mDNS discovery, and keep extra CORS origins empty by default.
+- Added native and portable hook blocking for known malware IOCs, `curl`/`wget` remote-download-plus-execute payloads, process substitution into shells, downloaded `/tmp` launchers, simple network-fetch-plus-exec one-liners, base64/xxd-to-shell, `/dev/tcp`/netcat/socat shell launchers, `nohup setsid` payloads, and `chmod 777` commands.
+- Added deny rules for sensitive file-tool targets including package token files, SSH keys, AWS/Kube/GitHub/Docker credentials, and local harness state.
+- Added local-only blocked-tool security event capture under `.opencode/local/security-events/` and expanded compaction/tool-definition warnings for untrusted web/search/repository content.
+- Pinned enabled MCP `npx` packages and strengthened harness health to fail on enabled unpinned `npx` MCP servers.
+
 ## 2026-06-10
 
 - Added a manual-first Loop Engineering layer with `/loop-plan`, `/loop-report`, `skills/loop-engineering`, loop contract templates, verification record templates, reviewer output schema, worktree protocol, and executable benchmark spec templates.
