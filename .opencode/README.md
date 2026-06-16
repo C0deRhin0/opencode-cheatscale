@@ -13,7 +13,7 @@ For the GitHub-facing project overview, see the repository root `README.md`. Thi
 ├── opencode.json      # Main OpenCode wiring: agents, commands, plugins, models
 ├── install.sh         # Portable exporter wrapper
 ├── package.json       # Optional plugin/package scripts and metadata
-├── agents/            # 25 specialist agent prompts
+├── agents/            # 31 specialist agent prompts
 ├── commands/          # 35 slash command prompts
 ├── skills/            # reusable instruction packs, gotcha, skill-builder, meta-harness
 ├── plugins/           # OpenCode runtime hooks
@@ -39,8 +39,8 @@ The active `.opencode/` harness contains these features:
 
 | Feature area | Included capabilities |
 |---|---|
-| OpenCode config | Strict-schema `opencode.json`, default `build` agent, reduced eager instructions, skills path registration, valid `mcp` entries, and plugin loading via `./plugins/ocs-hooks.ts`. |
-| Agents | 25 registered primary/subagents with domain, planning, quality, research, synthesis, and cleanup roles. |
+| OpenCode config | Strict-schema `opencode.json`, localhost-only server binding, default `build` agent, reduced eager instructions, skills path registration, valid `mcp` entries, and plugin loading via `./plugins/ocs-hooks.ts`. |
+| Agents | 31 registered primary/subagents with domain, planning, quality, research, harness safety, context budgeting, synthesis, and cleanup roles. |
 | Commands | 35 slash commands for planning, execution, testing, review, sessions, git cadence, JIRA sync, gotchas, skill building, loop planning/reporting, and health checks. |
 | Skills | 39 `SKILL.md` instruction packs, including CheatScale-specific skills and broader API/backend/frontend/security/testing/research/media/platform workflows. |
 | Wave orchestration | Phase 0 route/scan, optional ingestion, knowledge wave, domain wave, quality wave, and synthesis/checkpoint phase. |
@@ -50,8 +50,8 @@ The active `.opencode/` harness contains these features:
 | Local learning | `/gotcha`, `/skill-builder`, `/harness-optimize`, local-only gotchas, generated views, optional traces, and manual meta-harness diagnosis. |
 | Loop Engineering | `/loop-plan`, `/loop-report`, loop contracts, verification records, reviewer schemas, worktree protocol, executable benchmark specs, fail-closed evaluation, state ownership, and approval gates. |
 | Native hooks | OpenCode-supported hooks for events, commands, tools, permissions, shell env, traces, and compaction context. |
-| Native safety | Denies sensitive bash/read access to `.env`, nested `.env`, JIRA config env files, `.opencode/local/**`, `.agents/local/**`, redirection forms such as `cat <.env`, and broad destructive `rm -rf` variants. |
-| Portable export | Generates `AGENTS.md`, `.agents/skills`, `.agents/harness-hooks`, `.agents/loop-contracts`, manifests, local-state gitignore, portability docs, and Claude/Codex/Gemini adapters. |
+| Native safety | Denies sensitive bash/read access to `.env`, nested `.env`, JIRA config env files, package tokens, SSH/AWS/Kube/GitHub/Docker credentials, `.opencode/local/**`, `.agents/local/**`, redirection forms such as `cat <.env`, broad destructive `rm -rf` variants, known malware IOCs, remote/encoded payload execution, and `chmod 777`. |
+| Portable export | Generates `AGENTS.md`, `.agents/agents`, `.agents/skills`, `.agents/harness-hooks`, `.agents/loop-contracts`, manifests, local-state gitignore, portability docs, and Claude/Codex/Gemini adapters. |
 | Portable safety | Dry-run planning, `--force` backups, `--list-targets`, managed markers, checksum manifests, partial-export manifest preservation, symlink rejection, secret exclusions, and local-only traces/backups. |
 | Validation | `/harness-health`, `npm test`, `npm run build`, `npm run portable:verify`, skill validation, shell syntax checks, and dependency audits. |
 
@@ -86,6 +86,7 @@ Generated portable files use:
 AGENTS.md                         # shared instruction source
 .agents/.gitignore                # local-state protection for backups/traces
 .agents/PORTABILITY.md            # generated operator notes
+.agents/agents/                   # full specialist agent prompt mirror
 .agents/skills/                   # Agent Skills-compatible workflow library
 .agents/harness-hooks/            # shared deterministic hook scripts
 .agents/loop-contracts/           # loop contract and verification templates
@@ -106,7 +107,7 @@ Shared hook scripts:
 | Script | Behavior |
 |---|---|
 | `session-context.cjs` | Emits concise OCS context at session start. |
-| `pre-tool-policy.cjs` | Blocks broad destructive `rm -rf` variants, git tag pushes, unapproved force pushes, unapproved package publishes, sensitive local-data reads including nested `.env` and `cat <.env` forms, and sensitive file-tool targets when adapter payloads include paths. |
+| `pre-tool-policy.cjs` | Blocks broad destructive `rm -rf` variants, git tag pushes, unapproved force pushes, unapproved package publishes, sensitive local-data reads including nested `.env` and `cat <.env` forms, sensitive file-tool targets, known malware IOCs, remote/encoded payload execution, and `chmod 777`. |
 | `gotcha-check.cjs` | Reads local gotcha state and surfaces relevant reminders. |
 | `redact-trace.cjs` | Writes opt-in redacted traces only when `OCS_TRACE_CAPTURE=1`; output is capped, local-only, symlink-checked, and lock-protected. |
 
@@ -189,7 +190,7 @@ For direct contribution-graph manipulation:
 
 ## Registered Agents
 
-`opencode.json` currently registers **25 agents**.
+`opencode.json` currently registers **31 agents**.
 
 | Group | Agents |
 |---|---|
@@ -197,6 +198,11 @@ For direct contribution-graph manipulation:
 | Planning/Synthesis | `planner`, `synthesis-writer`, `reducer` |
 | Domain Writers | `architect`, `frontend-engineer`, `database-engineer`, `devops-engineer`, `integration-engineer`, `ml-engineer` |
 | Quality/Review | `code-reviewer`, `security-reviewer`, `database-reviewer`, `performance-reviewer`, `accessibility-reviewer`, `qa-engineer`, `tdd-guide`, `e2e-runner`, `build-error-resolver`, `critic`, `researcher`, `fact-checker`, `refactor-cleaner`, `doc-updater` |
+| Harness Safety/Precision | `harness-security-engineer`, `prompt-injection-analyst`, `hook-policy-engineer`, `context-budget-auditor`, `mcp-supply-chain-auditor`, `incident-forensics-analyst` |
+
+Narrow specialists use `Use ONLY` descriptions and explicit boundaries so they improve routing precision without encouraging full-roster dispatch. Reusable guidance without independent tool execution should remain a skill rather than becoming another agent.
+
+The portable exporter mirrors these prompt files into `.agents/agents/` so non-OpenCode harnesses can inspect or adapt the full specialist definitions instead of relying only on the generated roster in `AGENTS.md`.
 
 ---
 
@@ -308,7 +314,7 @@ or directly:
 node .opencode/scripts/harness-health.cjs
 ```
 
-The validator checks command registration, command frontmatter routing, agent registration, file references, OpenCode MCP shape, plugin file/hook validity, skill frontmatter, metadata counts, local-state protection, cleanup artifacts, and stale upstream branding.
+The validator checks command registration, command frontmatter routing, agent registration, narrow specialist agent governance, file references, localhost-only server binding, sensitive-path/high-risk-command permission rules, OpenCode MCP shape and enabled `npx` package pinning, plugin file/hook validity, skill frontmatter, metadata counts, local-state protection, cleanup artifacts, and stale upstream branding.
 
 ### Optional plugin development setup
 
@@ -336,6 +342,8 @@ Runtime toggles:
 export OCS_HOOK_PROFILE=standard     # minimal | standard | strict
 export OCS_DISABLED_HOOKS="post:edit:console-warn,pre:bash:tmux-reminder"
 export OCS_AUTO_FORMAT=0             # set to 1 to allow strict-profile formatter writes
+export OCS_ALLOW_REMOTE_EXEC=0       # set to 1 only after manually verifying remote scripts
+export OCS_ALLOW_CHMOD_777=0         # set to 1 only after explicit permission review
 ```
 
 Use `minimal` for low-noise sessions, `standard` for normal development, and `strict` when you want stronger reminders and checks. Execution trace capture is disabled unless `OCS_TRACE_CAPTURE=1` is set for a targeted diagnosis session.
@@ -346,13 +354,14 @@ Native hook features:
 |---|---|
 | `event` | Logs session-related events without interrupting flow. |
 | `command.execute.before` | Reminds operators that `/gotcha` uses local-only state. |
-| `tool.execute.before` | Emits gotcha reminders before risky git/publish commands, doc-file warnings, and strict-profile long-running-command reminders. |
+| `tool.execute.before` | Blocks sensitive file-tool targets, known malware IOCs, remote/encoded payload execution, and `chmod 777`; emits gotcha reminders before risky git/publish commands, doc-file warnings, and strict-profile long-running-command reminders. |
 | `tool.execute.after` | Tracks edited files, warns on `console.log`, optionally formats only when `OCS_AUTO_FORMAT=1`, typechecks in strict mode, and writes opt-in redacted traces. |
-| `permission.ask` | Denies sensitive read-like paths and sensitive bash reads; auto-allows only simple formatter/test commands after target/path checks. |
+| `tool.definition` | Adds untrusted-context warnings to bash, webfetch, and websearch tool descriptions before the model sees them. |
+| `permission.ask` | Denies sensitive read-like paths, sensitive bash reads, known malware IOCs, remote-download-plus-execute payloads, and `chmod 777`; auto-allows only simple formatter/test commands after target/path checks. |
 | `shell.env` | Injects OCS and project environment metadata plus package-manager detection. |
 | `experimental.session.compacting` | Preserves active harness status, edited files, principles, and local-state reminders across compaction. |
 
-Sensitive bash/read denial covers `.env`, `.env.*`, nested or parent-relative `.env` paths, shell builtins such as `source .env`, redirections such as `cat <.env`, JIRA credential env files, `.opencode/local/**`, `.agents/local/**`, `.agents/backups/**`, and credential/secret-like paths.
+Sensitive bash/read denial covers `.env`, `.env.*`, nested or parent-relative `.env` paths, shell builtins such as `source .env`, redirections such as `cat <.env`, JIRA credential env files, package-manager token files, `.ssh`, AWS/Kube/GitHub/Docker credential files, `.opencode/local/**`, `.agents/local/**`, `.agents/backups/**`, and credential/secret-like paths. High-risk shell denial covers `curl`/`wget` content piped to shells, process substitution into shells, downloaded scripts or `/tmp` payloads followed by execution/source/chmod/background launch, simple Python/Node/Perl/Ruby network-fetch-plus-exec patterns, base64/xxd-to-shell, `/dev/tcp`, netcat/socat shell launchers, `chmod 777`, and the known indicators from the referenced OpenCode incident. Blocked native events are written to `.opencode/local/security-events/blocked-tools.json`; portable blocked events are written to `.agents/local/security-events/blocked-tools.json`. Set `OCS_ALLOW_REMOTE_EXEC=1` or `OCS_ALLOW_CHMOD_777=1` only after manual source verification.
 
 Meta-harness evaluation is fail-closed: benchmark specs must live under `.opencode/local/benchmarks/`, results stay under `.opencode/local/meta-harness/evaluations/`, symlink/cwd escapes are rejected, output is redacted, and unapproved benchmarks are limited to a safe Node script allowlist. Shell, destructive, or arbitrary commands require explicit `--approved-by-user`.
 
@@ -378,17 +387,17 @@ OpenCode MCP servers are configured in `opencode.json` under `mcp`. Credentialed
 
 | Server | Purpose | Status |
 |---|---|---|
-| `github` | Repository, issue, and PR workflows | Disabled by default |
+| `github` | Repository, issue, and PR workflows | Disabled by default; pinned package |
 | `context7` | Live documentation lookup | Enabled |
 | `exa` | Neural web search | Disabled by default |
-| `memory` | Persistent memory | Enabled |
-| `playwright` | Browser automation | Enabled |
-| `sequential-thinking` | Stepwise reasoning | Enabled |
+| `memory` | Persistent memory | Enabled; pinned package |
+| `playwright` | Browser automation | Enabled; pinned package |
+| `sequential-thinking` | Stepwise reasoning | Enabled; pinned package |
 | `obsidian` | Local vault integration | Disabled by default |
 
 Legacy/reference MCP examples live in `.mcp.json` and `mcp-configs/`.
 
-Do not commit real credentials from local MCP files, even in private repositories.
+Do not commit real credentials from local MCP files, even in private repositories. Pin every `npx`, `uvx`, or `pip` MCP dependency before enabling it; do not use `@latest` for MCP servers.
 
 ---
 
