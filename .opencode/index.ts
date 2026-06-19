@@ -49,7 +49,7 @@ export const metadata = {
   description: "OpenCode CheatScale plugin for OpenCode",
   author: "C0deRhin0",
     features: {
-      agents: 25,
+      agents: 31,
     commands: 35,
     skills: 39,
     configAssets: true,
@@ -61,6 +61,7 @@ export const metadata = {
       "tool.execute.before",
       "tool.execute.after",
       "permission.ask",
+      "tool.definition",
       "shell.env",
       "experimental.session.compacting",
     ],
