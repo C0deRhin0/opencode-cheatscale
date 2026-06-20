@@ -269,6 +269,12 @@ When creating PRs:
 | tdd-guide | Test-driven development | New features, bug fixes |
 | code-reviewer | Code review | After writing code |
 | security-reviewer | Security analysis | Before commits |
+| harness-security-engineer | Harness security | ONLY OpenCode config, permissions, plugins/hooks, MCP exposure |
+| prompt-injection-analyst | Injection triage | ONLY untrusted web/repo/MCP content or synthetic tool events |
+| hook-policy-engineer | Hook policy | ONLY deterministic bash/file-tool hook logic and tests |
+| context-budget-auditor | Context budget | ONLY token overhead, eager instructions, compaction strategy |
+| mcp-supply-chain-auditor | MCP package trust | ONLY MCP pinning, remote MCP trust, runtime install risk |
+| incident-forensics-analyst | Incident timeline | ONLY suspicious sessions, DB/log evidence, synthetic event attribution |
 | build-error-resolver | Fix build errors | When build fails |
 | e2e-runner | E2E testing | Critical user flows |
 | refactor-cleaner | Dead code cleanup | Code maintenance |
@@ -285,6 +291,13 @@ No user prompt needed:
 2. Code just written/modified - Use **code-reviewer** agent
 3. Bug fix or new feature - Use **tdd-guide** agent
 4. Architectural decision - Use **architect** agent
+
+### Agent Routing Guardrails
+
+- Choose the narrowest applicable agent and avoid overlapping reviewers.
+- Add or invoke agents only when there is a unique workflow, permission profile, verification responsibility, repeated trigger, or clear output contract.
+- Prefer skills for reusable guidance that does not require independent tool execution.
+- Simple tasks should usually stay with the active primary agent.
 
 ---
 
