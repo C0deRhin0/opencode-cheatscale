@@ -14,7 +14,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-github"
+        "@modelcontextprotocol/server-github@2025.4.8"
       ],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT_HERE"
@@ -36,7 +36,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@supabase/mcp-server-supabase@latest",
+        "@supabase/mcp-server-supabase@0.8.2",
         "--project-ref=YOUR_PROJECT_REF"
       ],
       "description": "Supabase database operations"
@@ -45,7 +45,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-memory"
+        "@modelcontextprotocol/server-memory@2026.1.26"
       ],
       "description": "Persistent memory across sessions"
     },
@@ -61,7 +61,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
+        "@modelcontextprotocol/server-sequential-thinking@2025.12.18"
       ],
       "description": "Chain-of-thought reasoning"
     },
@@ -126,7 +126,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@magicuidesign/mcp@latest"
+        "@magicuidesign/mcp@2.0.0"
       ],
       "description": "Magic UI components"
     },
@@ -223,6 +223,7 @@
     "usage": "Copy the servers you need to your ~/.claude.json mcpServers section",
     "env_vars": "Replace YOUR_*_HERE placeholders with actual values",
     "disabling": "Use disabledMcpServers array in project config to disable per-project",
-    "context_warning": "Keep under 10 MCPs enabled to preserve context window"
+    "context_warning": "Keep under 10 MCPs enabled to preserve context window",
+    "supply_chain_warning": "Pin every npx/uvx/pip package to a reviewed version before enabling. Do not use @latest for MCP servers."
   }
 }
