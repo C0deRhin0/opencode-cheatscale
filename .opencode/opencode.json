@@ -3,6 +3,11 @@
   "model": "openai/gpt-5.5",
   "small_model": "openai/gpt-5.4-mini-fast",
   "default_agent": "build",
+  "server": {
+    "hostname": "127.0.0.1",
+    "mdns": false,
+    "cors": []
+  },
   "instructions": [
     "agents/orchestrator.md",
     "AGENTS.md",
@@ -105,6 +110,84 @@
         "bash": true,
         "write": true,
         "edit": true
+      }
+    },
+    "harness-security-engineer": {
+      "description": "Use ONLY when editing or reviewing OpenCode harness security surfaces: opencode.json permissions/server config, .opencode plugins/hooks, MCP exposure, local audit logging, or security policy tests.",
+      "mode": "subagent",
+      "model": "openai/gpt-5.5",
+      "prompt": "{file:agents/harness-security-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "prompt-injection-analyst": {
+      "description": "Use ONLY when analyzing prompt-injection, untrusted web/repository/MCP content, synthetic tool-event text, or adversarial instructions before they reach implementation context.",
+      "mode": "subagent",
+      "model": "openai/gpt-5.5",
+      "prompt": "{file:agents/prompt-injection-analyst.md}",
+      "tools": {
+        "read": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+        "question": true
+      }
+    },
+    "hook-policy-engineer": {
+      "description": "Use ONLY when implementing deterministic tool-policy hooks, bash/file-tool deny logic, portable hook scripts, hook tests, or hook export behavior.",
+      "mode": "subagent",
+      "model": "openai/gpt-5.5",
+      "prompt": "{file:agents/hook-policy-engineer.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": true,
+        "edit": true,
+        "question": true
+      }
+    },
+    "context-budget-auditor": {
+      "description": "Use ONLY when auditing token/context overhead from eager instructions, agent descriptions, skills, commands, MCPs, plans, traces, or orchestration behavior.",
+      "mode": "subagent",
+      "model": "openai/gpt-5.4-mini-fast",
+      "prompt": "{file:agents/context-budget-auditor.md}",
+      "tools": {
+        "read": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+        "question": true
+      }
+    },
+    "mcp-supply-chain-auditor": {
+      "description": "Use ONLY when reviewing MCP server configuration, npx/uvx/pip package pinning, MCP credentials, remote MCP trust, or dependency-install risk.",
+      "mode": "subagent",
+      "model": "openai/gpt-5.4-mini-fast",
+      "prompt": "{file:agents/mcp-supply-chain-auditor.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": false,
+        "edit": false,
+        "question": true
+      }
+    },
+    "incident-forensics-analyst": {
+      "description": "Use ONLY when investigating suspicious OpenCode sessions, opencode.db/log evidence, synthetic tool events, network exposure, or local incident timelines.",
+      "mode": "subagent",
+      "model": "openai/gpt-5.5",
+      "prompt": "{file:agents/incident-forensics-analyst.md}",
+      "tools": {
+        "read": true,
+        "bash": true,
+        "write": false,
+        "edit": false,
+        "question": true
       }
     },
     "tdd-guide": {
@@ -533,7 +616,7 @@
       "command": [
         "npx",
         "-y",
-        "@modelcontextprotocol/server-github"
+        "@modelcontextprotocol/server-github@2025.4.8"
       ],
       "enabled": false
     },
@@ -544,7 +627,7 @@
         "-y",
         "@upstash/context7-mcp@2.1.4"
       ],
-      "enabled": true
+      "enabled": false
     },
     "exa": {
       "type": "remote",
@@ -556,9 +639,9 @@
       "command": [
         "npx",
         "-y",
-        "@modelcontextprotocol/server-memory"
+        "@modelcontextprotocol/server-memory@2026.1.26"
       ],
-      "enabled": true
+      "enabled": false
     },
     "playwright": {
       "type": "local",
@@ -568,16 +651,16 @@
         "@playwright/mcp@0.0.68",
         "--extension"
       ],
-      "enabled": true
+      "enabled": false
     },
     "sequential-thinking": {
       "type": "local",
       "command": [
         "npx",
         "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
+        "@modelcontextprotocol/server-sequential-thinking@2025.12.18"
       ],
-      "enabled": true
+      "enabled": false
     },
     "obsidian": {
       "type": "local",
@@ -594,16 +677,149 @@
     }
   },
   "permission": {
-    "read": "allow",
-    "glob": "allow",
-    "grep": "allow",
-    "list": "allow",
+    "read": {
+      "*": "allow",
+      ".env*": "deny",
+      "*.env*": "deny",
+      "**/.env*": "deny",
+      "**/jira-config.env": "deny",
+      "**/.opencode/local/**": "deny",
+      "**/.agents/local/**": "deny",
+      ".npmrc": "deny",
+      "**/.npmrc": "deny",
+      ".pypirc": "deny",
+      "**/.pypirc": "deny",
+      ".netrc": "deny",
+      "**/.netrc": "deny",
+      ".ssh/**": "deny",
+      "**/.ssh/**": "deny",
+      "id_rsa": "deny",
+      "**/id_rsa": "deny",
+      "id_dsa": "deny",
+      "**/id_dsa": "deny",
+      "id_ecdsa": "deny",
+      "**/id_ecdsa": "deny",
+      "id_ed25519": "deny",
+      "**/id_ed25519": "deny",
+      ".aws/credentials": "deny",
+      "**/.aws/credentials": "deny",
+      ".kube/config": "deny",
+      "**/.kube/config": "deny",
+      ".config/gh/hosts.yml": "deny",
+      "**/.config/gh/hosts.yml": "deny",
+      ".docker/config.json": "deny",
+      "**/.docker/config.json": "deny",
+      ".git-credentials": "deny",
+      "**/.git-credentials": "deny",
+      ".config/gcloud/application_default_credentials.json": "deny",
+      "**/.config/gcloud/application_default_credentials.json": "deny",
+      ".azure/accessTokens.json": "deny",
+      "**/.azure/accessTokens.json": "deny",
+      ".terraform.d/credentials.tfrc.json": "deny",
+      "**/.terraform.d/credentials.tfrc.json": "deny"
+    },
+    "glob": {
+      "*": "allow",
+      ".env*": "deny",
+      "*.env*": "deny",
+      "**/.env*": "deny",
+      "**/jira-config.env": "deny",
+      "**/.opencode/local/**": "deny",
+      "**/.agents/local/**": "deny",
+      ".npmrc": "deny",
+      "**/.npmrc": "deny",
+      ".pypirc": "deny",
+      "**/.pypirc": "deny",
+      ".netrc": "deny",
+      "**/.netrc": "deny",
+      ".ssh/**": "deny",
+      "**/.ssh/**": "deny",
+      ".aws/credentials": "deny",
+      "**/.aws/credentials": "deny",
+      ".kube/config": "deny",
+      "**/.kube/config": "deny",
+      ".config/gh/hosts.yml": "deny",
+      "**/.config/gh/hosts.yml": "deny",
+      ".docker/config.json": "deny",
+      "**/.docker/config.json": "deny",
+      ".git-credentials": "deny",
+      "**/.git-credentials": "deny",
+      ".config/gcloud/application_default_credentials.json": "deny",
+      "**/.config/gcloud/application_default_credentials.json": "deny",
+      ".azure/accessTokens.json": "deny",
+      "**/.azure/accessTokens.json": "deny",
+      ".terraform.d/credentials.tfrc.json": "deny",
+      "**/.terraform.d/credentials.tfrc.json": "deny"
+    },
+    "grep": {
+      "*": "allow",
+      ".env*": "deny",
+      "*.env*": "deny",
+      "**/.env*": "deny",
+      "**/jira-config.env": "deny",
+      "**/.opencode/local/**": "deny",
+      "**/.agents/local/**": "deny",
+      ".npmrc": "deny",
+      "**/.npmrc": "deny",
+      ".pypirc": "deny",
+      "**/.pypirc": "deny",
+      ".netrc": "deny",
+      "**/.netrc": "deny",
+      ".ssh/**": "deny",
+      "**/.ssh/**": "deny",
+      ".aws/credentials": "deny",
+      "**/.aws/credentials": "deny",
+      ".kube/config": "deny",
+      "**/.kube/config": "deny",
+      ".config/gh/hosts.yml": "deny",
+      "**/.config/gh/hosts.yml": "deny",
+      ".docker/config.json": "deny",
+      "**/.docker/config.json": "deny",
+      ".git-credentials": "deny",
+      "**/.git-credentials": "deny",
+      ".config/gcloud/application_default_credentials.json": "deny",
+      "**/.config/gcloud/application_default_credentials.json": "deny",
+      ".azure/accessTokens.json": "deny",
+      "**/.azure/accessTokens.json": "deny",
+      ".terraform.d/credentials.tfrc.json": "deny",
+      "**/.terraform.d/credentials.tfrc.json": "deny"
+    },
+    "list": {
+      "*": "allow",
+      "**/.opencode/local/**": "deny",
+      "**/.agents/local/**": "deny",
+      ".ssh/**": "deny",
+      "**/.ssh/**": "deny",
+      ".aws/**": "deny",
+      "**/.aws/**": "deny",
+      ".kube/**": "deny",
+      "**/.kube/**": "deny",
+      ".config/gh/**": "deny",
+      "**/.config/gh/**": "deny",
+      ".config/gcloud/**": "deny",
+      "**/.config/gcloud/**": "deny",
+      ".azure/**": "deny",
+      "**/.azure/**": "deny",
+      ".terraform.d/**": "deny",
+      "**/.terraform.d/**": "deny"
+    },
     "question": "allow",
     "todowrite": "allow",
     "skill": "allow",
     "webfetch": "ask",
+    "websearch": "ask",
     "bash": {
       "*": "ask",
+      "*curl*|*sh*": "deny",
+      "*curl*|*bash*": "deny",
+      "*wget*|*sh*": "deny",
+      "*wget*|*bash*": "deny",
+      "*chmod 777*": "deny",
+      "*nohup setsid*": "deny",
+      "*Tcp1000gbps.sh*": "deny",
+      "*45.148.10.215*": "deny",
+      "*1710.rwlp.be*": "deny",
+      "*vclgowp*": "deny",
       "node .opencode/scripts/harness-health.cjs": "allow",
       "npm run build": "allow"
     },
