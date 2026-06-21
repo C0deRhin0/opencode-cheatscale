@@ -3,6 +3,7 @@
 Generated files:
 
 - `CLAUDE.md` imports `AGENTS.md` with `@AGENTS.md`.
+- `.agents/agents/` contains the full specialist agent prompt mirror for reference or platform-native conversion.
 - `.claude/settings.json` wires hooks to `.agents/harness-hooks/`.
 - `.claude/skills/` mirrors `.agents/skills/` for Claude-native discovery.
 
