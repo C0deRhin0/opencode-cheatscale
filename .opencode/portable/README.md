@@ -3,6 +3,7 @@
 OpenCode remains the native authoring harness, but the durable cross-platform layer is generated from it:
 
 - `AGENTS.md` for shared agent instructions.
+- `.agents/agents/*.md` for full specialist agent prompt portability.
 - `.agents/skills/<name>/SKILL.md` for Agent Skills-compatible workflows.
 - `.agents/harness-hooks/*.cjs` for reusable deterministic hook scripts.
 - `.agents/loop-contracts/*` for Loop Engineering contracts, verification records, reviewer schemas, worktree protocols, and benchmark templates.
