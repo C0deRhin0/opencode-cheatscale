@@ -17,6 +17,7 @@ const allowedConfigKeys = new Set([
   'server',
   'command',
   'skills',
+  'references',
   'reference',
   'watcher',
   'snapshot',
@@ -77,6 +78,15 @@ const oldBrandingTerms = [
 ];
 const oldBranding = new RegExp(`\\b(${oldBrandingTerms.map((term) => term.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})\\b`);
 const secretPattern = /(sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|Bearer\s+[A-Za-z0-9._~+/=-]{20,})/;
+const narrowSpecialistAgents = new Set([
+  'harness-security-engineer',
+  'prompt-injection-analyst',
+  'hook-policy-engineer',
+  'context-budget-auditor',
+  'mcp-supply-chain-auditor',
+  'incident-forensics-analyst',
+]);
+const requiredAgentSections = ['## When to Use', '## When Not to Use', '## Boundaries', '## Output Format'];
 
 function issue(level, message) {
   issues.push([level, message]);
@@ -148,6 +158,68 @@ function validateTopLevelConfig(cfg) {
   }
 }
 
+function validateServerConfig(cfg) {
+  if (!cfg.server) {
+    issue('warn', 'opencode.json has no server block; set server.hostname to 127.0.0.1 to avoid accidental LAN exposure.');
+    return;
+  }
+
+  if (!['127.0.0.1', 'localhost'].includes(cfg.server.hostname)) {
+    issue('error', 'opencode.json server.hostname must stay localhost-only unless a separate authenticated boundary is documented.');
+  }
+
+  if (cfg.server.mdns === true) {
+    issue('warn', 'opencode.json server.mdns is enabled; disable mDNS unless LAN discovery is explicitly required.');
+  }
+
+  if (Array.isArray(cfg.server.cors) && cfg.server.cors.length > 0) {
+    issue('warn', 'opencode.json server.cors allows extra origins; keep CORS empty unless each origin is reviewed.');
+  }
+}
+
+function validatePermissionPolicy(cfg) {
+  const permission = cfg.permission;
+  if (!permission || typeof permission !== 'object') return;
+
+  const requiredReadDenyPatterns = ['.env*', '**/.env*', '**/.opencode/local/**', '**/.agents/local/**', '**/.npmrc', '**/.ssh/**', '**/.aws/credentials', '**/.git-credentials'];
+  for (const tool of ['read', 'grep', 'glob']) {
+    const rules = permission[tool];
+    if (!rules || typeof rules !== 'object') {
+      issue('error', `Permission ${tool} must use an object policy with sensitive-path deny rules.`);
+      continue;
+    }
+    for (const pattern of requiredReadDenyPatterns) {
+      if (rules[pattern] !== 'deny') issue('error', `Permission ${tool} missing sensitive deny rule: ${pattern}`);
+    }
+  }
+
+  const bashRules = permission.bash;
+  if (!bashRules || typeof bashRules !== 'object') {
+    issue('error', 'Permission bash must use an object policy with high-risk command deny rules.');
+    return;
+  }
+  for (const pattern of ['*chmod 777*', '*Tcp1000gbps.sh*', '*45.148.10.215*', '*1710.rwlp.be*', '*vclgowp*']) {
+    if (bashRules[pattern] !== 'deny') issue('error', `Permission bash missing high-risk deny rule: ${pattern}`);
+  }
+}
+
+function firstNpxPackageSpec(command) {
+  for (let index = 1; index < command.length; index += 1) {
+    const token = command[index];
+    if (token === '--') return command[index + 1] || '';
+    if (token.startsWith('-')) continue;
+    return token;
+  }
+  return '';
+}
+
+function hasPinnedPackageVersion(spec) {
+  if (!spec || /^(?:file:|https?:|git\+|\.\.?\/|\/)/.test(spec)) return true;
+  if (/@latest$/i.test(spec)) return false;
+  if (spec.startsWith('@')) return spec.lastIndexOf('@') > 0;
+  return spec.includes('@');
+}
+
 function validateMcpConfig(cfg) {
   if (!cfg.mcp) return;
   for (const [name, server] of Object.entries(cfg.mcp)) {
@@ -157,6 +229,12 @@ function validateMcpConfig(cfg) {
         issue('error', `MCP ${name} local server must use command as an array of strings.`);
       }
       if (server.env) issue('error', `MCP ${name} uses env; OpenCode local MCP config expects environment.`);
+      if (server.enabled !== false && Array.isArray(server.command) && server.command[0] === 'npx') {
+        const spec = firstNpxPackageSpec(server.command);
+        if (!hasPinnedPackageVersion(spec)) {
+          issue('error', `MCP ${name} uses unpinned npx package "${spec}"; pin a reviewed version before enabling.`);
+        }
+      }
       continue;
     }
     if (server.type === 'remote') {
@@ -239,6 +317,28 @@ function validateCommandAndAgentFiles(cfg) {
   for (const [name, agent] of Object.entries(cfg.agent || {})) {
     for (const match of String(agent.prompt || '').matchAll(fileRef)) {
       if (!exists(match[1])) issue('error', `Agent ${name} references missing file: ${match[1]}`);
+    }
+  }
+}
+
+function validateAgentGovernance(cfg) {
+  const agents = cfg.agent || {};
+  for (const name of narrowSpecialistAgents) {
+    const agent = agents[name];
+    if (!agent) {
+      issue('error', `Narrow specialist agent is missing from opencode.json: ${name}`);
+      continue;
+    }
+
+    const description = String(agent.description || '');
+    if (!description.startsWith('Use ONLY')) {
+      issue('error', `Narrow specialist agent description must start with "Use ONLY": ${name}`);
+    }
+
+    const agentPath = path.join(root, 'agents', `${name}.md`);
+    const content = readTextIfExists(agentPath);
+    for (const section of requiredAgentSections) {
+      if (!content.includes(section)) issue('error', `Narrow specialist agent ${name} missing section: ${section}`);
     }
   }
 }
@@ -358,9 +458,12 @@ readJson(path.join(root, 'tsconfig.json'));
 
 if (cfg) {
   validateTopLevelConfig(cfg);
+  validateServerConfig(cfg);
+  validatePermissionPolicy(cfg);
   validateMcpConfig(cfg);
   validatePlugins(cfg);
   validateCommandAndAgentFiles(cfg);
+  validateAgentGovernance(cfg);
 
   for (const instruction of cfg.instructions || []) {
     if (!exists(instruction)) issue('error', `Instruction path is missing: ${instruction}`);
