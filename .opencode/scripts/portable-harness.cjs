@@ -6,12 +6,18 @@ const crypto = require('crypto');
 
 const HARNESS_ROOT = path.resolve(__dirname, '..');
 const WORKSPACE_ROOT = path.resolve(HARNESS_ROOT, '..');
+const SOURCE_AGENTS_ROOT = path.join(HARNESS_ROOT, 'agents');
 const SOURCE_SKILLS_ROOT = path.join(HARNESS_ROOT, 'skills');
 const SOURCE_HOOKS_ROOT = path.join(HARNESS_ROOT, 'scripts', 'harness-hooks');
 const SOURCE_LOOP_CONTRACTS_ROOT = path.join(HARNESS_ROOT, 'loop-contracts');
 const MANAGED_MARKER = 'OCS-PORTABLE-MANAGED';
 const EXPORTER_VERSION = '1.0.0';
 const TARGETS = ['portable', 'claude', 'codex', 'gemini'];
+const CLAUDE_PAIRED_READ_DENY_PATHS = [
+  '.env', '.env.*', '.npmrc', '.pypirc', '.netrc', '.aws/credentials', '.kube/config',
+  '.config/gh/hosts.yml', '.config/gh/config.yml', '.docker/config.json', '.git-credentials', '.config/gcloud/application_default_credentials.json', '.azure/accessTokens.json', '.terraform.d/credentials.tfrc.json',
+];
+const readDenyPair = (relPath) => [`Read(./${relPath})`, `Read(./**/${relPath})`];
 
 function toPosix(value) {
   return value.split(path.sep).join('/');
@@ -106,7 +112,7 @@ function normalizeTargets(rawTargets) {
 }
 
 function usage() {
-  return `OpenCode CheatScale portable harness exporter\n\nUsage:\n  node .opencode/scripts/portable-harness.cjs --target claude --project /path/to/project\n  .opencode/install.sh --target all --dry-run\n\nTargets:\n  portable   AGENTS.md, .agents/skills, shared hook scripts, loop contracts, adapter registry\n  claude     Claude Code bridge: CLAUDE.md, .claude/settings.json, .claude/skills\n  codex      Codex bridge: .codex/config.toml, .codex/hooks.json\n  gemini     Gemini/Antigravity bridge: GEMINI.md, .gemini/settings.json\n  all        portable + claude + codex + gemini\n\nOptions:\n  --project, -p PATH   Target project root (default: parent of .opencode)\n  --target, -t NAME    Target adapter; comma-separated values are allowed\n  --dry-run           Print planned writes without touching files\n  --force             Overwrite unmanaged existing files after backing them up\n  --no-backup         Disable backups when overwriting\n  --list-targets      Show target capability registry\n`;
+  return `OpenCode CheatScale portable harness exporter\n\nUsage:\n  node .opencode/scripts/portable-harness.cjs --target claude --project /path/to/project\n  .opencode/install.sh --target all --dry-run\n\nTargets:\n  portable   AGENTS.md, .agents/agents, .agents/skills, shared hook scripts, loop contracts, adapter registry\n  claude     Claude Code bridge: CLAUDE.md, .claude/settings.json, .claude/skills\n  codex      Codex bridge: .codex/config.toml, .codex/hooks.json\n  gemini     Gemini/Antigravity bridge: GEMINI.md, .gemini/settings.json\n  all        portable + claude + codex + gemini\n\nOptions:\n  --project, -p PATH   Target project root (default: parent of .opencode)\n  --target, -t NAME    Target adapter; comma-separated values are allowed\n  --dry-run           Print planned writes without touching files\n  --force             Overwrite unmanaged existing files after backing them up\n  --no-backup         Disable backups when overwriting\n  --list-targets      Show target capability registry\n`;
 }
 
 function createState(projectRoot, options) {
@@ -272,6 +278,22 @@ function shouldCopySkillFile(skillName, relFile) {
   return Boolean(skillName);
 }
 
+function shouldCopyAgentPromptFile(relFile) {
+  const rel = toPosix(relFile);
+  if (!rel.endsWith('.md')) return false;
+  if (/\.env(?:\.|$)/.test(rel)) return false;
+  if (/secret|token|credential/i.test(rel)) return false;
+  return true;
+}
+
+function copyAgentPrompts(state, targetRootRel, kind) {
+  for (const relFile of listFilesRecursive(SOURCE_AGENTS_ROOT)) {
+    if (!shouldCopyAgentPromptFile(relFile)) continue;
+    const content = readText(path.join(SOURCE_AGENTS_ROOT, relFile));
+    writeManagedFile(state, path.join(targetRootRel, relFile), content, kind);
+  }
+}
+
 function copySkills(state, targetRootRel, kind) {
   for (const skillName of listSkillNames()) {
     const sourceRoot = path.join(SOURCE_SKILLS_ROOT, skillName);
@@ -301,11 +323,11 @@ function copyLoopContracts(state) {
 
 function renderPortableAgents() {
   const sourceAgents = readText(path.join(HARNESS_ROOT, 'AGENTS.md')).trim();
-  return `<!-- ${MANAGED_MARKER}: generated from .opencode by portable-harness.cjs -->\n# CheatScale Portable Agent Instructions\n\nThis file is the vendor-neutral instruction bridge for the OpenCode CheatScale harness. It is generated from the active .opencode harness so Codex, Gemini/Antigravity, Claude Code, OpenCode, and other AGENTS.md-aware tools can share the same operating model.\n\n## Portable layout\n\n- Shared instructions: AGENTS.md\n- Shared skills: .agents/skills/<name>/SKILL.md\n- Shared hook scripts: .agents/harness-hooks/*.cjs\n- Shared loop contracts: .agents/loop-contracts/*\n- Adapter registry: .agents/harness-adapters.json\n- Local-only state: .agents/local/ or .opencode/local/; do not commit it\n\n## Portability rules\n\n- Treat .agents/skills as the portable skill source. Platform-specific skill mirrors may be generated from it.\n- Treat .agents/loop-contracts as the portable source for loop templates, reviewer schemas, worktree protocol, and benchmark specs.\n- Do not copy secrets, traces, gotcha state, local JIRA config, or generated diagnostics into source control.\n- Portable hooks block sensitive shell/file-tool targets when adapters pass path payloads; where native read-deny rules are unavailable, this policy remains mandatory.\n- Platform adapters are thin wrappers. If an adapter and this file conflict, prefer this file for behavior and the adapter for platform mechanics.\n- Keep deterministic slash-command behavior in native harnesses; use skills for progressive disclosure and cross-platform reuse.\n\n---\n\n${sourceAgents}\n`;
+  return `<!-- ${MANAGED_MARKER}: generated from .opencode by portable-harness.cjs -->\n# CheatScale Portable Agent Instructions\n\nThis file is the vendor-neutral instruction bridge for the OpenCode CheatScale harness. It is generated from the active .opencode harness so Codex, Gemini/Antigravity, Claude Code, OpenCode, and other AGENTS.md-aware tools can share the same operating model.\n\n## Portable layout\n\n- Shared instructions: AGENTS.md\n- Shared agent prompts: .agents/agents/*.md\n- Shared skills: .agents/skills/<name>/SKILL.md\n- Shared hook scripts: .agents/harness-hooks/*.cjs\n- Shared loop contracts: .agents/loop-contracts/*\n- Adapter registry: .agents/harness-adapters.json\n- Local-only state: .agents/local/ or .opencode/local/; do not commit it\n\n## Portability rules\n\n- Treat .agents/agents as the portable source for full specialist agent prompt files. Platform-specific native subagent mirrors may be generated from it.\n- Treat .agents/skills as the portable skill source. Platform-specific skill mirrors may be generated from it.\n- Treat .agents/loop-contracts as the portable source for loop templates, reviewer schemas, worktree protocol, and benchmark specs.\n- Do not copy secrets, traces, gotcha state, local JIRA config, or generated diagnostics into source control.\n- Portable hooks block sensitive shell/file-tool targets when adapters pass path payloads; where native read-deny rules are unavailable, this policy remains mandatory.\n- Platform adapters are thin wrappers. If an adapter and this file conflict, prefer this file for behavior and the adapter for platform mechanics.\n- Keep deterministic slash-command behavior in native harnesses; use skills for progressive disclosure and cross-platform reuse.\n\n---\n\n${sourceAgents}\n`;
 }
 
 function renderPortabilityReadme(targets) {
-  return `# CheatScale Portable Harness\n\n${MANAGED_MARKER}\n\nGenerated adapters: ${targets.join(', ')}\n\n## Source of truth\n\nOpenCode remains the authoring harness in .opencode/. The portable layer exposes the reusable parts through:\n\n- AGENTS.md for shared instructions\n- .agents/skills/ for cross-platform Agent Skills\n- .agents/harness-hooks/ for deterministic hook scripts\n- .agents/loop-contracts/ for loop contracts, verification records, reviewer schemas, worktree protocols, and benchmark templates\n- .agents/harness-adapters.json for target capability mapping\n\n## Re-run\n\nFrom the source harness:\n\n\`\`\`bash\n.opencode/install.sh --target all --project /path/to/project --dry-run\n.opencode/install.sh --target all --project /path/to/project\n\`\`\`\n\nExisting unmanaged files are not overwritten unless you pass --force. Overwritten files are backed up under .agents/local/backups/, which should remain local-only.\n`;
+  return `# CheatScale Portable Harness\n\n${MANAGED_MARKER}\n\nGenerated adapters: ${targets.join(', ')}\n\n## Source of truth\n\nOpenCode remains the authoring harness in .opencode/. The portable layer exposes the reusable parts through:\n\n- AGENTS.md for shared instructions\n- .agents/agents/ for full specialist agent prompt files\n- .agents/skills/ for cross-platform Agent Skills\n- .agents/harness-hooks/ for deterministic hook scripts\n- .agents/loop-contracts/ for loop contracts, verification records, reviewer schemas, worktree protocols, and benchmark templates\n- .agents/harness-adapters.json for target capability mapping\n\n## Re-run\n\nFrom the source harness:\n\n\`\`\`bash\n.opencode/install.sh --target all --project /path/to/project --dry-run\n.opencode/install.sh --target all --project /path/to/project\n\`\`\`\n\nExisting unmanaged files are not overwritten unless you pass --force. Overwritten files are backed up under .agents/local/backups/, which should remain local-only.\n`;
 }
 
 function adapterRegistry() {
@@ -314,6 +336,7 @@ function adapterRegistry() {
     exporterVersion: EXPORTER_VERSION,
     portableBase: {
       instructions: 'AGENTS.md',
+      agents: '.agents/agents',
       skills: '.agents/skills',
       hooks: '.agents/harness-hooks',
       loopContracts: '.agents/loop-contracts',
@@ -323,6 +346,7 @@ function adapterRegistry() {
       opencode: {
         nativeDirectory: '.opencode',
         instructions: true,
+        agents: true,
         skills: true,
         hooks: 'native TypeScript plugin plus optional shared scripts',
         commands: true,
@@ -330,6 +354,7 @@ function adapterRegistry() {
       },
       claude: {
         instructions: 'CLAUDE.md imports AGENTS.md',
+        agents: true,
         skills: true,
         hooks: true,
         commands: 'skills and natural-language invocation; deterministic slash commands are not copied 1:1',
@@ -337,6 +362,7 @@ function adapterRegistry() {
       },
       codex: {
         instructions: 'AGENTS.md',
+        agents: true,
         skills: true,
         hooks: true,
         readDeny: 'portable hooks block sensitive file-tool targets when hook payloads include paths; AGENTS.md policy remains the fallback where adapters do not enforce read-deny rules natively',
@@ -345,6 +371,7 @@ function adapterRegistry() {
       },
       gemini: {
         instructions: 'GEMINI.md imports AGENTS.md and settings prefer AGENTS.md',
+        agents: true,
         skills: true,
         hooks: true,
         readDeny: 'portable hooks block sensitive file-tool targets when hook payloads include paths; AGENTS.md policy remains the fallback where adapters do not enforce read-deny rules natively',
@@ -372,20 +399,28 @@ function renderClaudeSettings() {
         'Read(./CLAUDE.md)',
         'Read(./.agents/PORTABILITY.md)',
         'Read(./.agents/harness-adapters.json)',
+        'Read(./.agents/agents/**)',
         'Read(./.agents/harness-hooks/**)',
         'Read(./.agents/loop-contracts/**)',
         'Read(./.agents/skills/**)',
         'Bash(node ./.agents/harness-hooks/*.cjs *)',
       ],
       deny: [
-        'Read(./.env)',
-        'Read(./.env.*)',
-        'Read(./**/.env)',
-        'Read(./**/.env.*)',
+        ...CLAUDE_PAIRED_READ_DENY_PATHS.flatMap(readDenyPair),
         'Read(./**/*config.env)',
         'Read(./**/jira-config.env)',
+        'Read(./.ssh/**)',
+        'Read(./**/.ssh/**)',
+        'Read(./**/id_rsa)',
+        'Read(./**/id_dsa)',
+        'Read(./**/id_ecdsa)',
+        'Read(./**/id_ed25519)',
+        'Read(./*credential*)',
         'Read(./**/*credential*)',
+        'Read(./*secret*)',
         'Read(./**/*secret*)',
+        'Read(./*token*)',
+        'Read(./**/*token*)',
         'Read(./.agents/local/**)',
         'Read(./.agents/backups/**)',
         'Read(./.opencode/local/**)',
@@ -454,7 +489,7 @@ function renderClaudeSettings() {
 }
 
 function renderClaudeMd() {
-  return `<!-- ${MANAGED_MARKER}: generated from .opencode by portable-harness.cjs -->\n@AGENTS.md\n\n## Claude Code Adapter\n\n- Project skills are mirrored into .claude/skills from .agents/skills for Claude Code discovery.\n- Hooks in .claude/settings.json call shared scripts in .agents/harness-hooks.\n- Keep CLAUDE.local.md for private local preferences only.\n`;
+  return `<!-- ${MANAGED_MARKER}: generated from .opencode by portable-harness.cjs -->\n@AGENTS.md\n\n## Claude Code Adapter\n\n- Full specialist agent prompts are available in .agents/agents for reference or platform-native conversion.\n- Project skills are mirrored into .claude/skills from .agents/skills for Claude Code discovery.\n- Hooks in .claude/settings.json call shared scripts in .agents/harness-hooks.\n- Keep CLAUDE.local.md for private local preferences only.\n`;
 }
 
 function renderAgentsGitignore() {
@@ -465,6 +500,7 @@ backups/
 *.env.*
 *credential*
 *secret*
+*token*
 *.tmp
 `;
 }
@@ -538,7 +574,7 @@ function renderCodexHooks() {
 }
 
 function renderGeminiMd() {
-  return `<!-- ${MANAGED_MARKER}: generated from .opencode by portable-harness.cjs -->\n# Gemini Adapter\n\n@AGENTS.md\n\nGemini/Antigravity should treat AGENTS.md as the shared source of truth and .agents/skills as the portable skill library.\n`;
+  return `<!-- ${MANAGED_MARKER}: generated from .opencode by portable-harness.cjs -->\n# Gemini Adapter\n\n@AGENTS.md\n\nGemini/Antigravity should treat AGENTS.md as the shared source of truth, .agents/agents as the specialist prompt library, and .agents/skills as the portable skill library.\n`;
 }
 
 function renderGeminiSettings() {
@@ -593,7 +629,7 @@ function renderGeminiSettings() {
               name: 'ocs-pre-tool-policy',
               command: rootCommandExpression('pre-tool-policy.cjs', 'gemini'),
               timeout: 30000,
-              description: 'Block destructive shell commands and sensitive file-tool targets, then surface gotchas',
+              description: 'Block destructive shell commands, remote payload execution, chmod 777, and sensitive file-tool targets, then surface gotchas',
             },
           ],
         },
@@ -629,6 +665,7 @@ function installPortable(state, targets) {
   );
   copySharedHooks(state);
   copyLoopContracts(state);
+  copyAgentPrompts(state, path.join('.agents', 'agents'), 'portable-agent');
   copySkills(state, path.join('.agents', 'skills'), 'portable-skill');
 }
 
